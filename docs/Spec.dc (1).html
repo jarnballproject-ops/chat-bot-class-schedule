@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/industry-e7ec5e9f-e201-4590-a3ca-0e379e46c52e/styles.css">
+<script src="_ds/industry-e7ec5e9f-e201-4590-a3ca-0e379e46c52e/_ds_bundle.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<script src="./doc-page.js"></script>
+<style>
+body{font-family:"Noto Sans Thai",Barlow,system-ui,sans-serif;margin:0}
+h1,h2,h3,h4,h5,h6{font-family:"Noto Sans Thai",system-ui,sans-serif;font-weight:600;text-wrap:balance}
+a{color:var(--color-accent-700);text-decoration:none}
+a:hover{color:var(--color-accent-800);text-decoration:underline}
+doc-page:not(:defined){visibility:hidden}
+</style>
+</helmet>
+
+<doc-page margin="0.7in">
+
+  <div slot="footer" style="display:flex;gap:12px;font-size:9pt;color:var(--color-neutral-700);border-top:1px solid var(--color-divider);padding-top:6px">
+    <div>AI Chat สำหรับตารางสอนอาจารย์ · Software Requirements &amp; Design Specification</div>
+    <div style="margin-left:auto">v1.0 · 7 ก.ย. 2569</div>
+  </div>
+
+  <div style="border-bottom:2px solid var(--color-accent);padding-bottom:14px;margin-bottom:20px">
+    <div style="font-size:9pt;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent-700)">เอกสารข้อกำหนดและการออกแบบระบบ</div>
+    <h1 style="font-size:26pt;margin:8px 0 6px;line-height:1.15">ระบบผู้ช่วยตอบคำถามตารางสอนอาจารย์<br>ด้วย AI และการอ่านตารางอัตโนมัติ</h1>
+    <div style="font-size:10.5pt;color:var(--color-neutral-700);line-height:1.6">Timetable Assistant — Thai Timetable OCR &amp; Conversational Query System<br>React · Spring Boot (Java 21) · PostgreSQL 16 · Typhoon OCR 2B · LLM 2B (tool-calling)</div>
+    <div style="display:flex;gap:26px;margin-top:14px;font-size:9.5pt;flex-wrap:wrap">
+      <div><div style="color:var(--color-neutral-700);font-size:8.5pt">ขอบเขต</div><div style="font-weight:600">1 ภาควิชา · ~20 อาจารย์</div></div>
+      <div><div style="color:var(--color-neutral-700);font-size:8.5pt">กำหนดส่ง</div><div style="font-weight:600">13 กันยายน 2569</div></div>
+      <div><div style="color:var(--color-neutral-700);font-size:8.5pt">ทีมพัฒนา</div><div style="font-weight:600">1 คน</div></div>
+      <div><div style="color:var(--color-neutral-700);font-size:8.5pt">สภาพแวดล้อม</div><div style="font-weight:600">โน้ตบุ๊ค 8 GB · ไม่มี GPU</div></div>
+    </div>
+  </div>
+
+  <h2 style="font-size:15pt;margin:0 0 8px">1. บทสรุปสำหรับผู้บริหาร</h2>
+  <p style="font-size:10.5pt;line-height:1.7;margin:0 0 10px">ระบบนี้แก้ปัญหาที่นักศึกษาต้องเดินไปดูตารางที่ป้ายหน้าภาควิชา หรือทักไปถามอาจารย์เองว่าคาบนี้ว่างไหม โดยให้เจ้าหน้าที่อัปโหลดไฟล์ตารางที่มีอยู่แล้ว (PDF จากระบบทะเบียน รูปถ่าย หรือไฟล์สแกน) ระบบอ่านตารางด้วยโมเดล OCR ที่เชี่ยวชาญเอกสารภาษาไทย แปลงเป็นข้อมูลเชิงสัมพันธ์ แล้วให้นักศึกษาถามเป็นภาษาพูดได้</p>
+  <p style="font-size:10.5pt;line-height:1.7;margin:0 0 12px">การตัดสินใจทางสถาปัตยกรรมที่สำคัญที่สุดสองข้อคือ <strong>(ก)</strong> ไม่ใช้ RAG บนข้อความ OCR ดิบ แต่แปลงเป็นตารางเชิงสัมพันธ์แล้วให้ AI เรียกฟังก์ชันไปดึงด้วย SQL ที่เขียนไว้ล่วงหน้า เพราะข้อมูลตารางสอนตอบผิดไม่ได้ และ <strong>(ข)</strong> ไม่ใช้ Tesseract แต่ใช้ Vision-Language Model ที่เทรนกับเอกสารไทย เพราะตารางเรียนเป็นโครงตารางหลายชั้นที่ OCR แบบเดิมอ่านลำดับผิด</p>
+
+  <div class="blueprint" style="padding:12px;margin-bottom:20px;break-inside:avoid">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <div style="font-size:9pt;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent-700);margin-bottom:8px">ปัญหาที่ยากที่สุดของโปรเจกต์นี้ ไม่ใช่ OCR</div>
+    <p style="font-size:10pt;line-height:1.7;margin:0">ในตารางเรียนจริง ช่องหนึ่งมีแต่ <strong>ชื่อต้นของครู</strong> เช่น "ไมตรี" "ลจี" "ปฐพนพัทธ์" ไม่มีนามสกุลและไม่มีรหัสครู แต่โจทย์ของระบบคือตอบคำถามว่า "อาจารย์คนนี้สอนอะไร" ซึ่งต้องรู้ว่าเป็นตัวคนไหน ถ้าภาควิชามีครูชื่อ "ไมตรี" สองคน ระบบเดาไม่ได้และไม่ควรเดา ระบบจึงต้องมีทะเบียนครูตั้งต้น และมีขั้นตอนให้คนจับคู่ชื่อต้นกับตัวคนหนึ่งครั้ง แล้วจำการจับคู่นั้นไว้ถาวร (ตาราง <span style="font-family:'IBM Plex Mono',monospace">teacher_alias</span>) หากไม่มีกลไกนี้ ตารางของครูที่ชื่อซ้ำจะปนกันทั้งภาควิชา</p>
+  </div>
+
+  <h2 style="font-size:15pt;margin:0 0 8px;break-before:page">2. ขอบเขตของงาน</h2>
+  <table class="table" style="width:100%;font-size:9.5pt;margin-bottom:16px">
+    <thead><tr><th style="width:34%">ทำใน MVP (ส่ง 13 ก.ย.)</th><th style="width:33%">ทำถ้าเวลาเหลือ</th><th style="width:33%">ไม่ทำในเฟสนี้</th></tr></thead>
+    <tbody>
+      <tr>
+        <td style="vertical-align:top;line-height:1.6">อัปโหลดไฟล์ตาราง (PDF / รูป / Excel)<br>OCR ตารางไทยพร้อม confidence รายฟิลด์<br>หน้าตรวจทานเทียบรูปต้นฉบับ<br>จับคู่ชื่อต้น → ทะเบียนครู<br>แชทตอบ 3 คำถามหลัก<br>รายงานความแม่นรายฟิลด์</td>
+        <td style="vertical-align:top;line-height:1.6">"ห้องนี้ว่างไหม"<br>"ตารางเรียนของฉันสัปดาห์นี้"<br>เทียบตารางกลุ่มกับตารางอาจารย์แล้วหา conflict<br>ตารางเขียนด้วยมือ (บังคับตรวจทุกช่อง)</td>
+        <td style="vertical-align:top;line-height:1.6">แจ้งเตือนเมื่อตารางเปลี่ยน (ต้องมีระบบ push + ประวัติเวอร์ชัน)<br>ดึงข้อมูลจาก API ระบบทะเบียนโดยตรง<br>จัดตารางสอนให้ (scheduling)<br>รองรับหลายคณะพร้อมกัน</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 style="font-size:15pt;margin:0 0 8px">3. ความต้องการเชิงหน้าที่</h2>
+  <table class="table" style="width:100%;font-size:9.5pt;margin-bottom:8px">
+    <thead><tr><th style="width:11%">รหัส</th><th style="width:14%">ผู้ใช้</th><th>ความต้องการ</th><th style="width:26%">เกณฑ์ยอมรับ</th><th style="width:9%">ระดับ</th></tr></thead>
+    <tbody>
+      <sc-for list="{{ frs }}" as="fr" hint-placeholder-count="14">
+        <tr style="break-inside:avoid">
+          <td style="font-family:'IBM Plex Mono',monospace;vertical-align:top;white-space:nowrap">{{ fr.id }}</td>
+          <td style="vertical-align:top">{{ fr.who }}</td>
+          <td style="vertical-align:top;line-height:1.55">{{ fr.what }}</td>
+          <td style="vertical-align:top;line-height:1.55;color:var(--color-neutral-700)">{{ fr.ac }}</td>
+          <td style="vertical-align:top">{{ fr.pri }}</td>
+        </tr>
+      </sc-for>
+    </tbody>
+  </table>
+
+  <h2 style="font-size:15pt;margin:22px 0 8px">4. ความต้องการเชิงคุณภาพ</h2>
+  <table class="table" style="width:100%;font-size:9.5pt;margin-bottom:16px">
+    <thead><tr><th style="width:11%">รหัส</th><th style="width:20%">ด้าน</th><th>เป้าหมายที่วัดได้</th><th style="width:30%">วิธีวัด</th></tr></thead>
+    <tbody>
+      <sc-for list="{{ nfrs }}" as="nf" hint-placeholder-count="8">
+        <tr style="break-inside:avoid">
+          <td style="font-family:'IBM Plex Mono',monospace;vertical-align:top;white-space:nowrap">{{ nf.id }}</td>
+          <td style="vertical-align:top">{{ nf.area }}</td>
+          <td style="vertical-align:top;line-height:1.55">{{ nf.target }}</td>
+          <td style="vertical-align:top;line-height:1.55;color:var(--color-neutral-700)">{{ nf.how }}</td>
+        </tr>
+      </sc-for>
+    </tbody>
+  </table>
+
+  <h2 style="font-size:15pt;margin:0 0 8px;break-before:page">5. เกณฑ์วัดความแม่นของ OCR</h2>
+  <p style="font-size:10.5pt;line-height:1.7;margin:0 0 12px">วัดแบบ <strong>field accuracy</strong> คือแยกวัดรายฟิลด์ ไม่รวมเป็นตัวเลขเดียว เพราะแต่ละฟิลด์ยากไม่เท่ากันและผลกระทบไม่เท่ากัน: รหัสวิชาเป็นตัวเลขล้วนจึงแม่นสูง ส่วนชื่อครูเป็นภาษาไทยเขียนย่อจึงแม่นต่ำสุดและกระทบมากสุด</p>
+  <div style="font-family:'IBM Plex Mono',monospace;font-size:9.5pt;background:var(--color-neutral-200);border-left:3px solid var(--color-accent);padding:10px 12px;margin-bottom:14px;break-inside:avoid;line-height:1.6">field_accuracy(f) = COUNT(ocr_value = human_value WHERE field = f) / COUNT(* WHERE field = f)<br>— คำนวณจากตาราง field_correction โดยตรง ไม่ต้องทำ dataset แยก</div>
+  <table class="table" style="width:100%;font-size:9.5pt;margin-bottom:14px">
+    <thead><tr><th style="width:19%">ฟิลด์</th><th style="width:13%">เป้าหมาย</th><th style="width:13%">ขั้นต่ำรับได้</th><th>เหตุผลและความเสี่ยง</th></tr></thead>
+    <tbody>
+      <sc-for list="{{ metrics }}" as="mt" hint-placeholder-count="6">
+        <tr style="break-inside:avoid">
+          <td style="vertical-align:top;font-weight:600">{{ mt.field }}</td>
+          <td style="vertical-align:top;font-family:'IBM Plex Mono',monospace">{{ mt.target }}</td>
+          <td style="vertical-align:top;font-family:'IBM Plex Mono',monospace;color:var(--color-neutral-700)">{{ mt.floor }}</td>
+          <td style="vertical-align:top;line-height:1.55">{{ mt.why }}</td>
+        </tr>
+      </sc-for>
+    </tbody>
+  </table>
+  <div class="blueprint" style="padding:12px;margin-bottom:16px;break-inside:avoid">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <div style="font-size:9pt;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent-700);margin-bottom:8px">ชุดข้อมูลทดสอบ · ต้องทำให้เสร็จภายใน 9 ก.ย.</div>
+    <p style="font-size:10pt;line-height:1.7;margin:0 0 8px">โครงการยังไม่มีตารางจริงจากภาควิชา จึงต้องสร้างชุดทดสอบเองจากตารางวิทยาลัยอาชีวศึกษา/เทคนิคที่เผยแพร่สาธารณะ โดยคัดให้หลากหลายฟอร์แมตและคุณภาพภาพ:</p>
+    <table class="table" style="width:100%;font-size:9.5pt">
+      <thead><tr><th style="width:44%">กลุ่มทดสอบ</th><th style="width:16%">จำนวนหน้า</th><th>สิ่งที่ต้องการพิสูจน์</th></tr></thead>
+      <tbody>
+        <tr><td>PDF มี text layer</td><td>4</td><td>ทางด่วน PDFBox ทำงาน ไม่ต้องเข้าคิว OCR</td></tr>
+        <tr><td>PDF สแกนคมชัด</td><td>4</td><td>ความแม่นเพดานของ Typhoon OCR</td></tr>
+        <tr><td>รูปถ่ายมือถือ เอียง/มีเงา</td><td>6</td><td>ขั้น deskew + normalize ช่วยได้จริงเท่าไร</td></tr>
+        <tr><td>ตารางเขียนด้วยมือ</td><td>2</td><td>ยืนยันว่าต้องบังคับคนตรวจ (คาดว่าแม่นต่ำมาก)</td></tr>
+        <tr><td>ฟอร์แมตต่างจากที่เคยเห็น</td><td>4</td><td>parser ไม่ผูกกับ template เดียว</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:10pt;line-height:1.7;margin:8px 0 0">รวม <strong>20 หน้า</strong> พิมพ์คำตอบที่ถูกต้องด้วยมือเป็นไฟล์ JSON เทียบ — นี่คือที่มาของตัวเลข % ทั้งหมดในรายงาน หากข้ามขั้นนี้ วันสอบจะไม่มีผลการทดลองให้แสดง</p>
+  </div>
+
+  <h2 style="font-size:15pt;margin:0 0 8px;break-before:page">6. Workflow การประมวลผลข้อมูล (Raw → Ready)</h2>
+  <p style="font-size:10.5pt;line-height:1.7;margin:0 0 10px">ก่อนถึงชั้นแชท ข้อมูลตารางทุกไฟล์เดินผ่าน 5 ขั้นนี้เสมอ ตามลำดับ — โครงสร้าง API และฐานข้อมูลในหัวข้อถัดไปถูกจัดเรียงให้สอดคล้องกับขั้นเหล่านี้ (แผนภาพ Workflow, Data Flow Diagram, ER Diagram และ System Architecture Diagram แบบคลิกดูได้อยู่ในไฟล์ System Design.dc.html)</p>
+  <table class="table" style="width:100%;font-size:9.5pt;margin-bottom:10px">
+    <thead><tr><th style="width:16%">ขั้น</th><th style="width:32%">สิ่งที่เกิดในระบบนี้</th><th style="width:26%">โมเดล / เครื่องมือประมวลผล</th><th>ผลลัพธ์</th></tr></thead>
+    <tbody>
+      <sc-for list="{{ workflow }}" as="wf" hint-placeholder-count="5">
+        <tr style="break-inside:avoid">
+          <td style="vertical-align:top;font-weight:600;line-height:1.5">{{ wf.step }}<br><span style="color:var(--color-accent-700)">{{ wf.label }}</span></td>
+          <td style="vertical-align:top;line-height:1.55">{{ wf.mapped }}</td>
+          <td style="vertical-align:top;line-height:1.55;color:var(--color-neutral-700)">{{ wf.model }}</td>
+          <td style="vertical-align:top;font-family:'IBM Plex Mono',monospace;font-size:8.5pt;line-height:1.5">{{ wf.artifact }}</td>
+        </tr>
+      </sc-for>
+    </tbody>
+  </table>
+  <div class="blueprint" style="padding:10px 12px;margin-bottom:16px;break-inside:avoid">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <p style="font-size:9.5pt;line-height:1.6;margin:0">AI (LLM tool layer) หยิบข้อมูลไปตอบผู้ใช้ได้เฉพาะ <strong>Step 5 · Ready Data</strong> เท่านั้น — สอดคล้องกับ ADR-01 ที่ตัดสินไว้ว่าไม่ทำ RAG บนข้อความ OCR ดิบ</p>
+  </div>
+
+  <h2 style="font-size:15pt;margin:0 0 8px;break-before:page">7. โครงสร้างฐานข้อมูล</h2>
+  <p style="font-size:10.5pt;line-height:1.7;margin:0 0 12px">PostgreSQL 16 · ตารางอาจารย์ไม่ได้เก็บซ้ำ แต่เป็น view ที่ derive จาก <span style="font-family:'IBM Plex Mono',monospace">session</span> join <span style="font-family:'IBM Plex Mono',monospace">session_teacher</span> จึงไม่มีทางที่ตารางกลุ่มเรียนกับตารางอาจารย์จะไม่ตรงกันจากการเก็บสองที่</p>
+  <sc-for list="{{ ddl }}" as="d" hint-placeholder-count="6">
+    <div style="margin-bottom:14px;break-inside:avoid">
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:4px;flex-wrap:wrap">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:11pt;font-weight:600">{{ d.name }}</div>
+        <div style="font-size:9.5pt;color:var(--color-accent-700)">{{ d.note }}</div>
+      </div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:8.5pt;line-height:1.55;background:var(--color-neutral-200);border-left:3px solid var(--color-accent);padding:9px 11px;white-space:pre-wrap;overflow-wrap:break-word">{{ d.sql }}</div>
+    </div>
+  </sc-for>
+
+  <h2 style="font-size:15pt;margin:0 0 8px;break-before:page">8. REST API</h2>
+  <p style="font-size:10.5pt;line-height:1.7;margin:0 0 12px">ทุก endpoint ต้องมี <span style="font-family:'IBM Plex Mono',monospace">Authorization: Bearer &lt;token&gt;</span> จาก SSO มหาวิทยาลัย · บทบาทที่กำหนดสิทธิ์คือ <span style="font-family:'IBM Plex Mono',monospace">student</span> / <span style="font-family:'IBM Plex Mono',monospace">staff</span> / <span style="font-family:'IBM Plex Mono',monospace">teacher</span> · กลุ่ม endpoint เรียงตามขั้น workflow ในหัวข้อ 6</p>
+  <sc-for list="{{ endpoints }}" as="g" hint-placeholder-count="4">
+    <div style="margin-bottom:16px">
+      <div style="display:flex;align-items:baseline;gap:10px;padding-bottom:4px;border-bottom:1px solid var(--color-accent);margin-bottom:8px;flex-wrap:wrap">
+        <div style="font-size:11pt;font-weight:600">{{ g.group }}</div>
+        <div style="font-size:9pt;color:var(--color-accent-700);white-space:nowrap">{{ g.step }}</div>
+      </div>
+      <sc-for list="{{ g.items }}" as="e" hint-placeholder-count="3">
+        <div style="margin-bottom:10px;break-inside:avoid">
+          <div style="display:flex;gap:8px;align-items:baseline;flex-wrap:wrap">
+            <div style="{{ e.methodStyle }}">{{ e.method }}</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:10pt;font-weight:600">{{ e.path }}</div>
+            <div style="font-size:9pt;color:var(--color-neutral-700);margin-left:auto;white-space:nowrap">{{ e.roles }}</div>
+          </div>
+          <div style="font-size:9.5pt;color:var(--color-neutral-700);line-height:1.55;margin:3px 0 4px">{{ e.does }}</div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:8.5pt;line-height:1.5;background:var(--color-neutral-200);padding:7px 9px;white-space:pre-wrap;overflow-wrap:break-word">{{ e.io }}</div>
+        </div>
+      </sc-for>
+    </div>
+  </sc-for>
+
+  <h2 style="font-size:15pt;margin:0 0 8px;break-before:page">9. Tool ที่ LLM เรียกได้</h2>
+  <p style="font-size:10.5pt;line-height:1.7;margin:0 0 12px">LLM ไม่เคยเห็นและไม่เคยเขียน SQL — เรียกได้เฉพาะฟังก์ชันชุดปิดนี้ ซึ่งข้างในเป็น SQL แบบ parameterized ที่เขียนไว้ล่วงหน้า วิธีนี้ตัด SQL injection และการ join ผิดออกทั้งคลาส และทำให้ทุกคำตอบตรวจย้อนได้ว่ามาจากแถวไหน</p>
+  <table class="table" style="width:100%;font-size:9.5pt;margin-bottom:16px">
+    <thead><tr><th style="width:20%">tool</th><th style="width:26%">พารามิเตอร์</th><th>ตอบคำถามแบบไหน</th></tr></thead>
+    <tbody>
+      <sc-for list="{{ tools }}" as="tl" hint-placeholder-count="5">
+        <tr style="break-inside:avoid">
+          <td style="vertical-align:top;font-family:'IBM Plex Mono',monospace;font-weight:600">{{ tl.name }}</td>
+          <td style="vertical-align:top;font-family:'IBM Plex Mono',monospace;font-size:8.5pt;line-height:1.5">{{ tl.args }}</td>
+          <td style="vertical-align:top;line-height:1.55">{{ tl.q }}</td>
+        </tr>
+      </sc-for>
+    </tbody>
+  </table>
+  <div class="blueprint" style="padding:12px;margin-bottom:16px;break-inside:avoid">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <div style="font-size:9pt;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent-700);margin-bottom:8px">กฎบังคับของชั้นแชท</div>
+    <ol style="font-size:10pt;line-height:1.75;margin:0;padding-left:20px">
+      <li>ห้ามตอบจากความรู้ในตัวโมเดล ทุกคำตอบต้องมาจากผล tool เท่านั้น</li>
+      <li>ถ้า tool ไม่คืนแถว ต้องบอกว่ายังไม่มีข้อมูลในระบบ ห้ามแต่งคำตอบ</li>
+      <li>ก่อนส่งคำตอบออก ระบบตรวจว่ารหัสวิชา/ห้อง/เวลาที่ปรากฏในคำตอบมีอยู่ในผล SQL จริง ถ้าไม่มีให้ทิ้งคำตอบและใช้ template แทน</li>
+      <li>ชื่อต้นที่ชี้ครูได้หลายคน ต้องถามกลับให้ผู้ใช้เลือก ห้ามเดา</li>
+      <li>ข้อมูลที่ยังไม่ผ่านการตรวจทานตอบได้ แต่ต้องติดป้ายความมั่นใจและลิงก์ดูรูปต้นฉบับทุกครั้ง</li>
+      <li>คำถามที่ regex จับ pattern ได้ชัดให้ข้ามชั้น LLM ไปเรียก tool ตรงและตอบด้วย template (ต่ำกว่า 300 ms)</li>
+    </ol>
+  </div>
+
+  <h2 style="font-size:15pt;margin:0 0 8px">10. สถานะของงาน OCR</h2>
+  <div style="font-family:'IBM Plex Mono',monospace;font-size:9.5pt;background:var(--color-neutral-200);border-left:3px solid var(--color-accent);padding:10px 12px;margin-bottom:10px;break-inside:avoid;line-height:1.8">queued ──▶ running ──▶ done ──▶ (ตรวจทานแล้ว) published<br>&nbsp;&nbsp;▲&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br>&nbsp;&nbsp;└─ timeout ─┴──▶ failed (attempts ≥ 3)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└──▶ needs_rescan (ภาพอ่านไม่ได้ทั้งหน้า)</div>
+  <p style="font-size:10.5pt;line-height:1.7;margin:0 0 16px">งานที่ค้างสถานะ <span style="font-family:'IBM Plex Mono',monospace">running</span> เกิน 10 นาทีจะถูกรีเซ็ตกลับเป็น <span style="font-family:'IBM Plex Mono',monospace">queued</span> และนับ attempt เพิ่ม เมื่อครบ 3 ครั้งจะขึ้น <span style="font-family:'IBM Plex Mono',monospace">failed</span> ให้คนดู เพื่อไม่ให้ worker วนลูปกินเครื่องทิ้ง</p>
+
+  <h2 style="font-size:15pt;margin:0 0 8px;break-before:page">11. แผนงาน 7 วัน</h2>
+  <p style="font-size:10.5pt;line-height:1.7;margin:0 0 12px">ทีมหนึ่งคน · ประเมินตามที่แจ้งว่ารู้ Java แต่ยังไม่เคยใช้ Spring Boot จึงกันเวลาวันแรกไว้เรียนรู้ · ทุกวันปิดท้ายด้วยสิ่งที่ demo ได้ เพื่อให้มีของส่งแม้ทำไม่ครบ</p>
+  <table class="table" style="width:100%;font-size:9.5pt;margin-bottom:14px">
+    <thead><tr><th style="width:12%">วัน</th><th style="width:30%">งานหลัก</th><th>รายละเอียด</th><th style="width:22%">ปลายวันต้องได้</th></tr></thead>
+    <tbody>
+      <sc-for list="{{ plan }}" as="pl" hint-placeholder-count="7">
+        <tr style="break-inside:avoid">
+          <td style="vertical-align:top;font-weight:600;white-space:nowrap">{{ pl.day }}</td>
+          <td style="vertical-align:top;line-height:1.55;font-weight:600">{{ pl.title }}</td>
+          <td style="vertical-align:top;line-height:1.55">{{ pl.detail }}</td>
+          <td style="vertical-align:top;line-height:1.55;color:var(--color-accent-800)">{{ pl.out }}</td>
+        </tr>
+      </sc-for>
+    </tbody>
+  </table>
+
+  <h2 style="font-size:15pt;margin:0 0 8px">12. ความเสี่ยงและแผนสำรอง</h2>
+  <table class="table" style="width:100%;font-size:9.5pt;margin-bottom:16px">
+    <thead><tr><th style="width:28%">ความเสี่ยง</th><th style="width:11%">ระดับ</th><th>แผนสำรอง</th></tr></thead>
+    <tbody>
+      <sc-for list="{{ risks }}" as="rk" hint-placeholder-count="6">
+        <tr style="break-inside:avoid">
+          <td style="vertical-align:top;line-height:1.55;font-weight:600">{{ rk.risk }}</td>
+          <td style="vertical-align:top;white-space:nowrap">{{ rk.level }}</td>
+          <td style="vertical-align:top;line-height:1.55">{{ rk.plan }}</td>
+        </tr>
+      </sc-for>
+    </tbody>
+  </table>
+
+  <h2 style="font-size:15pt;margin:0 0 8px;break-before:page">13. Tech Stack</h2>
+  <table class="table" style="width:100%;font-size:9.5pt;margin-bottom:16px">
+    <thead><tr><th style="width:18%">ชั้น</th><th style="width:32%">เทคโนโลยี</th><th>บทบาท / เหตุผลที่เลือก</th></tr></thead>
+    <tbody>
+      <sc-for list="{{ tech }}" as="tc" hint-placeholder-count="10">
+        <tr style="break-inside:avoid">
+          <td style="vertical-align:top;font-weight:600;white-space:nowrap">{{ tc.layer }}</td>
+          <td style="vertical-align:top;font-family:'IBM Plex Mono',monospace;font-size:9pt;line-height:1.5">{{ tc.stack }}</td>
+          <td style="vertical-align:top;line-height:1.55">{{ tc.why }}</td>
+        </tr>
+      </sc-for>
+    </tbody>
+  </table>
+
+  <h2 style="font-size:15pt;margin:0 0 8px;break-before:page">14. แบ่งงานเป็น Pipeline ย่อย ต่อกันเป็น Pipeline รวม</h2>
+  <p style="font-size:10.5pt;line-height:1.7;margin:0 0 12px">แยกงานตามชั้น Frontend / Backend / ฐานข้อมูล / OCR-LLM sidecar เป็นขั้นย่อยที่ทดสอบแยกได้ก่อน แล้วค่อยต่อเป็นสองสายงานหลักท้ายหมวดนี้</p>
+  <sc-for list="{{ pipeline }}" as="g" hint-placeholder-count="4">
+    <div style="margin-bottom:14px">
+      <div style="font-size:11pt;font-weight:600;padding-bottom:4px;border-bottom:1px solid var(--color-accent);margin-bottom:6px">{{ g.group }}</div>
+      <table class="table" style="width:100%;font-size:9pt">
+        <thead><tr><th style="width:10%">ขั้น</th><th style="width:26%">งาน</th><th style="width:32%">อินพุต → เอาต์พุต</th><th>ขึ้นกับ</th></tr></thead>
+        <tbody>
+          <sc-for list="{{ g.items }}" as="pi" hint-placeholder-count="4">
+            <tr style="break-inside:avoid">
+              <td style="vertical-align:top;font-family:'IBM Plex Mono',monospace;font-weight:600;white-space:nowrap">{{ pi.id }}</td>
+              <td style="vertical-align:top;font-weight:600;line-height:1.5">{{ pi.what }}</td>
+              <td style="vertical-align:top;font-family:'IBM Plex Mono',monospace;font-size:8.3pt;line-height:1.5">{{ pi.io }}</td>
+              <td style="vertical-align:top;color:var(--color-neutral-700);white-space:nowrap">{{ pi.dep }}</td>
+            </tr>
+          </sc-for>
+        </tbody>
+      </table>
+    </div>
+  </sc-for>
+
+  <div class="blueprint" style="padding:12px;margin-bottom:16px;break-inside:avoid">
+    <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+    <div style="font-size:9pt;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent-700);margin-bottom:8px">Pipeline รวม — สองสายที่ขั้นย่อยข้างบนต่อกันจริง</div>
+    <sc-for list="{{ chains }}" as="c" hint-placeholder-count="2">
+      <div style="margin-bottom:10px">
+        <div style="font-size:10pt;font-weight:600;margin-bottom:4px">{{ c.title }}</div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:9pt;line-height:1.8;overflow-wrap:break-word">{{ c.chain }}</div>
+      </div>
+    </sc-for>
+  </div>
+
+  <h2 style="font-size:15pt;margin:0 0 8px">15. คำถามที่ยังไม่มีคำตอบ</h2>
+  <ol style="font-size:10.5pt;line-height:1.8;margin:0;padding-left:22px">
+    <li><strong>ทะเบียนครูของภาควิชา</strong> — ยังไม่มีไฟล์รายชื่อครูจริง ถ้าไม่ได้ก่อนวันที่ 10 จะสาธิตการจับคู่ชื่อต้นด้วยข้อมูลสมมติ ซึ่งลดน้ำหนักผลการทดลอง</li>
+    <li><strong>จำนวนกลุ่มเรียนจริง</strong> — ยังไม่ทราบ มีผลต่อคำถาม "อาจารย์ว่างช่วงไหน" เพราะต้องอัปโหลดตารางทุกกลุ่มให้ครบก่อนจะตอบได้ถูก ถ้าไม่ครบต้องแสดงคำเตือนว่าข้อมูลอาจไม่สมบูรณ์</li>
+    <li><strong>SSO ของมหาวิทยาลัย</strong> — ยังไม่ทราบว่าเปิด OIDC ให้โปรเจกต์นักศึกษาใช้หรือไม่ แผนสำรองคือ mock provider ในเครื่องพร้อมสวิตช์สลับไปของจริง</li>
+    <li><strong>ห้องเรียนทั้งหมด</strong> — คำถาม "ห้องนี้ว่างไหม" ตอบได้ถูกเฉพาะเมื่อมีรายการห้องครบ ยังต้องขอผังห้องจากภาควิชา</li>
+  </ol>
+
+</doc-page>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{}">
+const FRS = [
+  { id: 'FR-01', who: 'เจ้าหน้าที่', what: 'อัปโหลดไฟล์ตารางได้ทั้ง PDF (มี/ไม่มี text layer), รูปถ่าย JPG/PNG, สแกน และ Excel/CSV โดยระบุว่าเป็นตารางเรียนรายกลุ่มหรือตารางสอนรายอาจารย์ พร้อมภาคเรียนและช่วงสัปดาห์', ac: 'ไฟล์ ≤ 20 MB · ระบบตอบ jobId กลับภายใน 1 วินาที · ไฟล์ที่ sha256 ซ้ำใช้ผลเดิมไม่รัน OCR ใหม่', pri: 'ต้องมี' },
+  { id: 'FR-02', who: 'ระบบ', what: 'PDF ที่มี text layer ต้องข้ามขั้น OCR ไปใช้การดึงข้อความตรงจาก PDFBox', ac: 'เสร็จภายใน 3 วินาที/หน้า และตั้ง confidence = 1.0 ทุกฟิลด์', pri: 'ต้องมี' },
+  { id: 'FR-03', who: 'ระบบ', what: 'อ่านตารางจากรูปด้วย Typhoon OCR โดยรักษาโครงตาราง แล้วแปลงเป็นแถวคาบเรียนพร้อม confidence และพิกัด bounding box แยกรายฟิลด์', ac: 'คืนผลภายใน 150 วินาที/หน้า · ทุกเซลล์มี bbox ที่ชี้ตำแหน่งบนรูปได้', pri: 'ต้องมี' },
+  { id: 'FR-04', who: 'ระบบ', what: 'ปรับภาพก่อน OCR: หมุนแก้เอียง (deskew), ปรับคอนทราสต์, ตัดขอบ', ac: 'รูปถ่ายเอียง ≤ 15° ต้องอ่านได้ไม่ต่างจากรูปตรงเกิน 10 จุดเปอร์เซ็นต์', pri: 'ต้องมี' },
+  { id: 'FR-05', who: 'เจ้าหน้าที่', what: 'ตรวจทานผล OCR โดยคลิกช่องในตารางแล้วกรอบสว่างขึ้นบนรูปต้นฉบับที่ตำแหน่งเดียวกัน แก้ค่าได้ทันที', ac: 'ช่องที่ confidence < 85% ถูกไฮไลต์อัตโนมัติ · มีปุ่มกระโดดไปช่องถัดไปที่ต้องตรวจ', pri: 'ต้องมี' },
+  { id: 'FR-06', who: 'เจ้าหน้าที่', what: 'ปรับเวลาเรียนโดยลากการ์ดวิชาไปวัน/คาบอื่น หรือลากขอบเพื่อขยายจำนวนคาบ และแก้ผ่าน dropdown ได้ด้วย', ac: 'ปล่อยบนช่องว่าง = ย้าย · ปล่อยบนการ์ดอื่น = สลับที่ · การ์ดที่แก้ด้วยมือแสดงต่างจากที่ OCR อ่านมา', pri: 'ต้องมี' },
+  { id: 'FR-07', who: 'เจ้าหน้าที่', what: 'จับคู่ชื่อต้นครูที่ OCR อ่านได้กับตัวคนในทะเบียนครู หนึ่งครั้งต่อชื่อ แล้วระบบจำถาวร', ac: 'ชื่อต้นที่ตรงกับครูคนเดียวผูกอัตโนมัติ · ชื่อซ้ำหลายคนหรือไม่พบต้องให้คนเลือกและห้ามเดา', pri: 'ต้องมี' },
+  { id: 'FR-08', who: 'เจ้าหน้าที่', what: 'บันทึกครูผู้สอนร่วมได้หลายคนในคาบเดียว เพิ่ม/ลบได้', ac: 'รองรับ ≥ 3 คนต่อคาบ · แต่ละคนจับคู่ทะเบียนแยกกัน', pri: 'ต้องมี' },
+  { id: 'FR-09', who: 'เจ้าหน้าที่', what: 'นำเข้าทะเบียนครูด้วย CSV และแก้ไขภายหลังได้', ac: 'คอลัมน์: รหัส, คำนำหน้า, ชื่อ, นามสกุล, ภาควิชา · แจ้งแถวที่ผิดรูปแบบโดยไม่ล้มทั้งไฟล์', pri: 'ต้องมี' },
+  { id: 'FR-10', who: 'นักศึกษา', what: 'ถามว่าอาจารย์คนหนึ่งสอนอะไรในวันที่ระบุ ("อ.สมชาย สอนอะไรวันนี้/พรุ่งนี้")', ac: 'ตอบเป็นรายการคาบพร้อมเวลา ห้อง วิชา · ชื่อกำกวมต้องถามกลับให้เลือก', pri: 'ต้องมี' },
+  { id: 'FR-11', who: 'นักศึกษา', what: 'ถามว่าวิชาหนึ่งเรียนที่ไหนเวลาไหน และใครสอน', ac: 'รับได้ทั้งรหัสวิชาและชื่อวิชาบางส่วน', pri: 'ต้องมี' },
+  { id: 'FR-12', who: 'นักศึกษา', what: 'ถามช่วงเวลาที่อาจารย์ไม่มีคาบสอน เพื่อหาเวลาเข้าพบ', ac: 'ต้องแจ้งด้วยว่าคำนวณจากตารางกี่กลุ่มที่มีในระบบ เพราะข้อมูลไม่ครบทำให้ผลผิด', pri: 'ต้องมี' },
+  { id: 'FR-13', who: 'ทุกคน', what: 'คำตอบต้องแสดงป้ายความมั่นใจ และกดดูรูปตารางต้นฉบับที่ข้อมูลนั้นมาจากได้', ac: 'ทุกคำตอบมีที่มา · ข้อมูลที่ยังไม่ตรวจทานติดป้าย "ยังไม่ยืนยัน" พร้อมเปอร์เซ็นต์', pri: 'ต้องมี' },
+  { id: 'FR-14', who: 'อาจารย์ผู้สอน', what: 'ดูรายงานความแม่นของ OCR แยกรายฟิลด์เป็นเปอร์เซ็นต์', ac: 'คำนวณจาก field_correction · แยกตามฟิลด์และตามประเภทไฟล์ (PDF / สแกน / ถ่ายมือถือ / ลายมือ)', pri: 'ต้องมี' },
+  { id: 'FR-15', who: 'นักศึกษา', what: 'ถามว่าห้องเรียนหนึ่งว่างช่วงไหน', ac: 'ต้องมีรายการห้องครบก่อน มิฉะนั้นแจ้งว่าข้อมูลห้องไม่สมบูรณ์', pri: 'ถ้าเหลือเวลา' },
+  { id: 'FR-16', who: 'ระบบ', what: 'เทียบตารางเรียนรายกลุ่มกับตารางสอนรายอาจารย์ แล้วรายงานจุดที่ขัดกัน', ac: 'ตารางสอนรายอาจารย์เป็น source of truth · แสดงรายการ conflict ให้เจ้าหน้าที่ตัดสิน', pri: 'ถ้าเหลือเวลา' },
+  { id: 'FR-17', who: 'ระบบ', what: 'ตารางที่เขียนด้วยมือต้องไม่ publish อัตโนมัติ บังคับให้คนตรวจทุกช่อง', ac: 'ตรวจครบ 100% ก่อนจึงตอบคำถามจากตารางนั้นได้', pri: 'ถ้าเหลือเวลา' }
+];
+
+const NFRS = [
+  { id: 'NFR-01', area: 'เวลาตอบของแชท', target: 'คำถามที่ผ่าน LLM ไม่เกิน 5 วินาที (p95) · คำถามที่จับ pattern ได้ไม่เกิน 300 ms', how: 'บันทึก latency_ms ทุกข้อความในตาราง chat_message แล้วสรุปเป็น p50/p95' },
+  { id: 'NFR-02', area: 'เวลาประมวลผล OCR', target: 'ไม่เกิน 150 วินาที/หน้า บน CPU · ไม่ต้อง real-time', how: 'จับเวลาจาก started_at ถึง finished_at ในตาราง ocr_job' },
+  { id: 'NFR-03', area: 'หน่วยความจำ', target: 'ทั้งระบบทำงานได้ในเครื่อง RAM 8 GB โดยไม่ใช้ swap หนัก', how: 'docker stats ระหว่างรัน OCR พร้อมแชท · OCR รันทีละงานเท่านั้น' },
+  { id: 'NFR-04', area: 'ความถูกต้องของคำตอบ', target: 'ห้ามตอบข้อมูลที่ไม่มีในฐานข้อมูลเลย (zero fabrication)', how: 'ตรวจว่าค่าที่ปรากฏในคำตอบมีอยู่ในผล SQL · ทดสอบด้วยคำถาม 30 ข้อรวมคำถามที่ไม่มีคำตอบ' },
+  { id: 'NFR-05', area: 'ความเป็นส่วนตัว (PDPA)', target: 'ข้อมูลอาจารย์ไม่ออกจากเครื่องมหาวิทยาลัย · ลบไฟล์ต้นฉบับได้ตามคำขอ', how: 'ไม่มีการเรียก cloud API ใด ๆ · ไฟล์อยู่บน volume ลบได้โดยข้อมูลตารางไม่เสีย' },
+  { id: 'NFR-06', area: 'ความปลอดภัย', target: 'ไม่มี SQL ที่สร้างจากข้อความผู้ใช้หรือจาก LLM', how: 'ตรวจโค้ดว่าทุก query เป็น parameterized และ LLM เข้าถึงได้เฉพาะ tool ชุดปิด' },
+  { id: 'NFR-07', area: 'การติดตั้ง', target: 'ติดตั้งได้ด้วยคำสั่งเดียว docker compose up', how: 'ทดสอบติดตั้งใหม่บนเครื่องเปล่าและจับเวลาให้ไม่เกิน 15 นาที (ไม่รวมดาวน์โหลดโมเดล)' },
+  { id: 'NFR-08', area: 'การกู้คืนงานที่ล้ม', target: 'งาน OCR ที่ค้างต้องกลับเข้าคิวเองได้ ไม่ต้องรีสตาร์ตระบบ', how: 'ปิด process ocr-worker กลางงาน แล้วดูว่างานกลับเป็น queued ภายใน 10 นาที' }
+];
+
+const METRICS = [
+  { field: 'รหัสวิชา', target: '≥ 98%', floor: '95%', why: 'ตัวเลขและขีดล้วน อ่านง่ายที่สุด และเป็นกุญแจเชื่อมไปตารางวิชา ถ้าผิดจะเชื่อมวิชาผิดทั้งคาบ' },
+  { field: 'ห้องเรียน', target: '≥ 95%', floor: '90%', why: 'ผสมอังกฤษ-เลข-ไทย (COM602, 11502, สนาม) และมักเขียนตัวเล็กในช่องแคบ' },
+  { field: 'วัน / คาบ / จำนวนคาบ', target: '≥ 97%', floor: '93%', why: 'ไม่ได้อ่านจากตัวอักษรแต่อนุมานจากตำแหน่งเซลล์และการรวมช่อง จึงพลาดเมื่อรูปเอียงหรือเส้นตารางขาด' },
+  { field: 'ชื่อครู', target: '≥ 90%', floor: '85%', why: 'จุดอ่อนที่สุด: ภาษาไทย เขียนย่อเหลือชื่อต้น ตัวเล็ก และบางช่องมีสองชื่อติดกัน — จึงต้องมีขั้นจับคู่ทะเบียนโดยคนเสมอ' },
+  { field: 'หน่วยกิต (ท ป น ช)', target: '≥ 92%', floor: '85%', why: 'อยู่ในตารางส่วนหัวที่ตัวเล็กมาก ผิดได้แต่ไม่กระทบคำตอบหลักของแชท' },
+  { field: 'ตารางลายมือ (ทุกฟิลด์)', target: 'ไม่กำหนด', floor: '—', why: 'งานวิจัยชี้ว่า CER ลายมือไทยอยู่ที่ 20–75% จึงไม่ตั้งเป้า แต่รายงานตัวเลขจริงและบังคับให้คนตรวจทุกช่อง' }
+];
+
+const DDL = [
+  { name: 'teacher · teacher_alias', note: 'หัวใจของระบบ — แก้ปัญหาชื่อต้นซ้ำ', sql: 'CREATE TABLE teacher (\n  id            bigserial PRIMARY KEY,\n  code          text UNIQUE NOT NULL,\n  prefix        text,\n  first_name    text NOT NULL,\n  last_name     text NOT NULL,\n  department    text,\n  active        boolean NOT NULL DEFAULT true\n);\n\nCREATE TABLE teacher_alias (\n  id            bigserial PRIMARY KEY,\n  alias_text    text NOT NULL,\n  teacher_id    bigint REFERENCES teacher(id),\n  confirmed_by  bigint REFERENCES app_user(id),\n  confirmed_at  timestamptz,\n  source_doc_id bigint REFERENCES timetable_doc(id),\n  CONSTRAINT uq_alias UNIQUE (alias_text)\n);\n-- unique บังคับว่าชื่อต้นหนึ่งชี้ครูได้คนเดียว\n-- ถ้าชื่อซ้ำ ต้องให้คนตัดสินก่อน จะไม่มีแถวนี้' },
+  { name: 'subject · class_group · room', note: 'ข้อมูลอ้างอิง', sql: 'CREATE TABLE subject (\n  code        text PRIMARY KEY,          -- 31901-2007\n  name_th     text NOT NULL,\n  theory_h    int,                       -- ท\n  practice_h  int,                       -- ป\n  credits     int,                       -- น\n  total_h     int                        -- ช\n);\n\nCREATE TABLE class_group (\n  code               text PRIMARY KEY,   -- 693190102\n  name               text NOT NULL,      -- สทท.4/2\n  program            text,\n  advisor_teacher_id bigint REFERENCES teacher(id),\n  semester           text NOT NULL       -- 1/2569\n);\n\nCREATE TABLE room (\n  code      text PRIMARY KEY,            -- COM602\n  name      text,\n  building  text,\n  capacity  int,\n  verified  boolean NOT NULL DEFAULT false\n);' },
+  { name: 'timetable_doc · ocr_job', note: 'ไฟล์ต้นฉบับ และคิวงานที่ใช้แทน message queue', sql: "CREATE TYPE doc_kind   AS ENUM ('class_group','teacher');\nCREATE TYPE doc_status AS ENUM ('uploaded','processing','published','needs_rescan');\nCREATE TYPE job_state  AS ENUM ('queued','running','done','failed');\n\nCREATE TABLE timetable_doc (\n  id           bigserial PRIMARY KEY,\n  kind         doc_kind   NOT NULL,\n  file_path    text       NOT NULL,      -- บน volume\n  sha256       text       NOT NULL UNIQUE,\n  mime         text,\n  semester     text       NOT NULL,\n  week_from    int, week_to int,\n  handwritten  boolean    NOT NULL DEFAULT false,\n  status       doc_status NOT NULL DEFAULT 'uploaded',\n  uploaded_by  bigint     REFERENCES app_user(id),\n  uploaded_at  timestamptz NOT NULL DEFAULT now()\n);\n\nCREATE TABLE ocr_job (\n  id          bigserial PRIMARY KEY,\n  doc_id      bigint    NOT NULL REFERENCES timetable_doc(id),\n  state       job_state NOT NULL DEFAULT 'queued',\n  engine      text,                      -- typhoon | pdfbox\n  attempts    int       NOT NULL DEFAULT 0,\n  page_total  int, page_done int NOT NULL DEFAULT 0,\n  started_at  timestamptz, finished_at timestamptz,\n  error       text\n);\nCREATE INDEX ix_job_poll ON ocr_job (state, id);\n-- worker: SELECT ... WHERE state='queued'\n--         ORDER BY id FOR UPDATE SKIP LOCKED LIMIT 1" },
+  { name: 'session · session_teacher', note: 'แกนกลาง — ครูสอนร่วมอยู่ที่ session_teacher', sql: "CREATE TABLE session (\n  id               bigserial PRIMARY KEY,\n  doc_id           bigint NOT NULL REFERENCES timetable_doc(id),\n  subject_code     text   REFERENCES subject(code),\n  class_group_code text   REFERENCES class_group(code),\n  room_code        text   REFERENCES room(code),\n  day_of_week      int    NOT NULL CHECK (day_of_week BETWEEN 1 AND 7),\n  period_start     int    NOT NULL,\n  period_span      int    NOT NULL DEFAULT 1,\n  kind             text   CHECK (kind IN ('ท','ป')),\n  week_from        int, week_to int,\n  source           text   NOT NULL DEFAULT 'ocr',  -- ocr | manual\n  conf             jsonb,   -- {code:0.98, room:0.95, time:0.97}\n  bbox             jsonb,   -- {x,y,w,h} เป็น % ของหน้า\n  reviewed_at      timestamptz\n);\nCREATE INDEX ix_session_day ON session (day_of_week, period_start);\n\nCREATE TABLE session_teacher (\n  session_id  bigint NOT NULL REFERENCES session(id) ON DELETE CASCADE,\n  teacher_id  bigint REFERENCES teacher(id),   -- null ได้ ระหว่างยังไม่จับคู่\n  alias_text  text   NOT NULL,\n  ordinal     int    NOT NULL DEFAULT 1,\n  confidence  numeric(4,3),\n  PRIMARY KEY (session_id, ordinal)\n);\nCREATE INDEX ix_st_teacher ON session_teacher (teacher_id);" },
+  { name: 'field_correction', note: 'ที่มาของตัวเลขความแม่นทั้งหมดในรายงาน', sql: 'CREATE TABLE field_correction (\n  id            bigserial PRIMARY KEY,\n  session_id    bigint NOT NULL REFERENCES session(id),\n  field         text   NOT NULL,   -- code|room|teacher|time|credits\n  ocr_value     text,\n  human_value   text,\n  ocr_conf      numeric(4,3),\n  doc_kind      text,              -- pdf|scan|photo|handwritten\n  corrected_by  bigint REFERENCES app_user(id),\n  corrected_at  timestamptz NOT NULL DEFAULT now()\n);\n\n-- รายงานความแม่นรายฟิลด์:\nSELECT field, doc_kind,\n       COUNT(*) FILTER (WHERE ocr_value = human_value)::numeric\n         / COUNT(*) AS accuracy\nFROM field_correction\nGROUP BY field, doc_kind;' },
+  { name: 'v_teacher_schedule', note: 'ตารางอาจารย์เป็น view ไม่ใช่ตารางที่เก็บซ้ำ', sql: 'CREATE VIEW v_teacher_schedule AS\nSELECT st.teacher_id,\n       t.prefix, t.first_name, t.last_name,\n       s.day_of_week, s.period_start, s.period_span,\n       s.subject_code, sub.name_th AS subject_name,\n       s.room_code, s.class_group_code,\n       s.week_from, s.week_to,\n       s.conf, s.doc_id, s.reviewed_at\nFROM session s\nJOIN session_teacher st ON st.session_id = s.id\nJOIN teacher t          ON t.id = st.teacher_id\nLEFT JOIN subject sub   ON sub.code = s.subject_code;\n-- เพราะ derive จากแหล่งเดียว ตารางกลุ่มเรียน\n-- กับตารางอาจารย์จึงไม่มีทางไม่ตรงกัน' }
+];
+
+const PROCESSING_WORKFLOW = [
+  { step: 'STEP 1', label: 'Raw Data', mapped: 'ไฟล์ตารางที่เพิ่งอัปโหลด: PDF/รูป/สแกน/Excel — เอียง มีเงา ชื่อครูเป็นชื่อต้น ฟอร์แมตไม่คงที่ระหว่างวิทยาลัย', model: 'ไม่มีโมเดล — เก็บไฟล์ตามที่ได้รับ', artifact: 'timetable_doc (status=uploaded)\nไฟล์บน volume' },
+  { step: 'STEP 2', label: 'Data Cleansing', mapped: 'ปรับภาพ (deskew / normalize contrast / ตัดขอบ), กันไฟล์ซ้ำด้วย sha256, แยกประเภทพิมพ์/ลายมือ, อ่านโครงตารางดิบออกมาเป็น markdown', model: 'Typhoon OCR 2B int8 (VLM) — อ่านตารางไทยพร้อม bbox + confidence รายเซลล์', artifact: 'markdown ตาราง + bbox\n(ยังไม่ join กับ schema)' },
+  { step: 'STEP 3', label: 'Cleaned Data', mapped: 'markdown ตารางที่อ่านออกครบ อ่านง่ายสำหรับคน แต่ยังเป็นตาราง 2 มิติ ไม่มี schema — ชื่อครูยังเป็นชื่อต้น รหัสวิชายังเป็น string ดิบ', model: 'ไม่มีโมเดลเพิ่ม — เป็นผลลัพธ์ตรงจาก Step 2', artifact: 'ผลลัพธ์ OCR ต่อหน้า\n(markdown + confidence)' },
+  { step: 'STEP 4', label: 'Data Preprocessing', mapped: 'Parser (Java) แปลง markdown → แถว session ตาม schema, TeacherResolver จับคู่ชื่อต้น↔teacher_id, ตรวจสอบหน่วยกิต, ส่งช่อง confidence ต่ำเข้าคิวให้คนตรวจทาน', model: 'Rule-based parser + alias-matching (exact → fuzzy) + คนตรวจทาน (human-in-the-loop)', artifact: 'session, session_teacher\n(teacher_id ยัง null ได้), field_correction' },
+  { step: 'STEP 5', label: 'Ready Data', mapped: 'แถวที่ teacher_id ผูกแล้วและ publish แล้ว มี index พร้อม query — ชั้นเดียวที่ AI เข้าถึงได้', model: 'LLM 1.5–2B (tool-calling) หยิบผ่าน ScheduleQueryService เท่านั้น', artifact: 'session/session_teacher\n(status=published) + v_teacher_schedule' }
+];
+
+const ENDPOINTS = [
+  {
+    group: 'อัปโหลดและงาน OCR', step: 'Step 1–2 · Raw → Cleansing',
+    items: [
+      { method: 'POST', path: '/api/docs', roles: 'staff', does: 'อัปโหลดไฟล์ตาราง เข้าคิว OCR (หรือใช้ทางด่วน PDFBox ถ้ามี text layer)', io: 'multipart: file, kind=class_group|teacher, semester, weekFrom, weekTo, handwritten\n201 → { docId, jobId, state:"queued", engine:"typhoon", duplicate:false }' },
+      { method: 'GET', path: '/api/jobs/{jobId}', roles: 'staff', does: 'สถานะงาน — React เรียกซ้ำทุก 3 วินาที', io: '200 → { state:"running", pageDone:1, pageTotal:3, flagged:14, etaSec:120 }' },
+      { method: 'POST', path: '/api/jobs/{jobId}/retry', roles: 'staff', does: 'สั่งรันงานที่ failed ใหม่ (รีเซ็ต attempts)', io: '202 → { state:"queued" }' },
+      { method: 'GET', path: '/api/docs/{docId}/image', roles: 'ทุกบทบาท', does: 'รูปต้นฉบับสำหรับหน้าตรวจทานและลิงก์ "ดูที่มา" ในแชท', io: '200 → image/jpeg (stream จาก volume)' },
+      { method: 'DELETE', path: '/api/docs/{docId}/file', roles: 'staff', does: 'ลบไฟล์ต้นฉบับตามคำขอ PDPA โดยข้อมูลตารางยังอยู่', io: '204' }
+    ]
+  },
+  {
+    group: 'ตรวจทานผล OCR', step: 'Step 3–4 · Cleaned → Preprocessing',
+    items: [
+      { method: 'GET', path: '/api/docs/{docId}/sessions', roles: 'staff', does: 'คาบทั้งหมดที่สกัดได้ พร้อม confidence, bbox และครูผู้สอน', io: '200 → { header:{ groupCode, groupName, semester, weekFrom, weekTo, advisor },\n         sessions:[ { id, day, periodStart, periodSpan, kind, subjectCode,\n                      roomCode, conf:{...}, bbox:{...},\n                      teachers:[{ ordinal, aliasText, teacherId, confidence,\n                                  candidates:[{ id, label }] }] } ] }' },
+      { method: 'PATCH', path: '/api/sessions/{id}', roles: 'staff', does: 'แก้ค่าในคาบ รวมย้ายวัน/คาบ และขยายจำนวนคาบ — บันทึก field_correction ให้อัตโนมัติ', io: '{ subjectCode?, roomCode?, day?, periodStart?, periodSpan?, kind?, weekFrom?, weekTo? }\n200 → { session, correctionsLogged:2 }' },
+      { method: 'PUT', path: '/api/sessions/{id}/teachers', roles: 'staff', does: 'กำหนดครูผู้สอนทั้งชุดของคาบนั้น (รองรับสอนร่วม)', io: '{ teachers:[ { ordinal:1, aliasText:"สายชล", teacherId:3 },\n              { ordinal:2, aliasText:"ธัญญาเรศ", teacherId:30 } ] }\n200 → { session }' },
+      { method: 'POST', path: '/api/aliases', roles: 'staff', does: 'ผูกชื่อต้นกับตัวครูถาวร — ครั้งเดียวใช้ได้ทุกไฟล์ต่อจากนี้', io: '{ aliasText:"ไมตรี", teacherId:14, sourceDocId:7 }\n201 → { aliasId, appliedToSessions:9 }\n409 → ชื่อนี้ผูกครูคนอื่นแล้ว (ต้องยืนยันทับ)' },
+      { method: 'POST', path: '/api/docs/{docId}/publish', roles: 'staff', does: 'ทำให้ตารางตอบคำถามได้ (ลายมือต้องตรวจครบ 100% ก่อน)', io: '200 → { status:"published", unreviewedCells:6 }\n422 → ตารางลายมือยังตรวจไม่ครบ' }
+    ]
+  },
+  {
+    group: 'แชทและการค้นตาราง', step: 'Step 5 · Ready Data (AI ใช้ชั้นนี้เท่านั้น)',
+    items: [
+      { method: 'POST', path: '/api/chat', roles: 'ทุกบทบาท', does: 'ถามเป็นภาษาไทย — ระบบเรียก tool ไปดึง SQL แล้วให้ LLM เรียบเรียง', io: '{ conversationId, text:"อ.ไมตรี พรุ่งนี้สอนอะไร" }\n200 → { answer, confidence:"unverified",\n         citations:[{ sessionId, docId, conf:0.62 }],\n         toolCalls:[{ name:"teacherDay", args:{...} }],\n         clarify?:{ question:"หมายถึงคนไหน",\n                    options:[{ teacherId, label }] },\n         latencyMs:2140, path:"llm" }' },
+      { method: 'GET', path: '/api/teachers/{id}/schedule', roles: 'ทุกบทบาท', does: 'ตารางสอนของอาจารย์ (อ่านจาก view ไม่ใช่ตารางซ้ำ)', io: '?date=2569-09-08 | ?week=6\n200 → { teacher, sessions:[...], derivedFromGroups:12, completeness:"partial" }' },
+      { method: 'GET', path: '/api/teachers/{id}/free', roles: 'ทุกบทบาท', does: 'ช่วงเวลาที่ไม่มีคาบสอน สำหรับหาเวลาเข้าพบ', io: '?date=2569-09-08\n200 → { free:[{ periodStart:3, periodSpan:2, time:"10:00-12:00" }],\n         warning:"คำนวณจากตาราง 12 กลุ่มที่มีในระบบ" }' },
+      { method: 'GET', path: '/api/subjects/{code}/sessions', roles: 'ทุกบทบาท', does: 'วิชานี้เรียนที่ไหน เวลาไหน ใครสอน', io: '200 → { subject, sessions:[...] }' },
+      { method: 'GET', path: '/api/rooms/{code}/availability', roles: 'ทุกบทบาท', does: 'ห้องนี้ว่างช่วงไหน', io: '?date=2569-09-08\n200 → { occupied:[...], free:[...], roomVerified:true }' }
+    ]
+  },
+  {
+    group: 'ทะเบียนและรายงาน', step: 'ข้อมูลอ้างอิง / รายงาน (คร่อมทุกขั้น)',
+    items: [
+      { method: 'POST', path: '/api/teachers/import', roles: 'staff', does: 'นำเข้าทะเบียนครูด้วย CSV', io: 'multipart: file (code, prefix, first_name, last_name, department)\n200 → { inserted:18, updated:2, rejected:[{ line:7, reason:"code ซ้ำ" }] }' },
+      { method: 'GET', path: '/api/reports/ocr-accuracy', roles: 'staff · teacher', does: 'รายงานความแม่นรายฟิลด์ — ตัวเลขที่ใช้ส่งอาจารย์', io: '200 → { byField:[{ field:"code", accuracy:0.983, n:412 },\n                   { field:"teacher", accuracy:0.907, n:388 }],\n         byDocKind:[{ kind:"photo", accuracy:0.912 },\n                    { kind:"handwritten", accuracy:0.514 }] }' },
+      { method: 'GET', path: '/api/reports/conflicts', roles: 'staff', does: 'จุดที่ตารางกลุ่มเรียนขัดกับตารางสอนรายอาจารย์', io: '200 → { conflicts:[{ teacherId, day, periodStart,\n                       fromGroupDoc:{...}, fromTeacherDoc:{...},\n                       resolution:"teacher_doc_wins" }] }' }
+    ]
+  }
+];
+
+const TOOLS = [
+  { name: 'teacherDay', args: 'teacherName: string\ndate: ISO date', q: '"อ.สมชาย สอนอะไรวันนี้" · ถ้าชื่อชี้ครูได้หลายคน คืนรายการให้ผู้ใช้เลือก ไม่เดา' },
+  { name: 'subjectWhere', args: 'subjectQuery: string\nsemester?: string', q: '"วิชา CS101 เรียนห้องไหน เวลาไหน ใครสอน" · รับทั้งรหัสวิชาและชื่อวิชาบางส่วน' },
+  { name: 'teacherFree', args: 'teacherName: string\ndate: ISO date', q: '"อ.คนนี้ว่างช่วงไหน" · คืนจำนวนกลุ่มที่ใช้คำนวณมาด้วย เพื่อเตือนว่าข้อมูลอาจไม่ครบ' },
+  { name: 'groupWeek', args: 'classGroupCode: string\nweek: int', q: '"ตารางเรียนของฉันสัปดาห์นี้" · รหัสกลุ่มมาจากตัวตน SSO ของผู้ถาม' },
+  { name: 'roomFree', args: 'roomCode: string\ndate: ISO date', q: '"ห้อง COM602 ว่างไหม" · แจ้งด้วยหากห้องนั้นยังไม่ verified' },
+  { name: 'whoTeaches', args: 'subjectQuery: string', q: '"วิชานี้ใครสอน" · คืนครูทุกคนรวมผู้สอนร่วม' }
+];
+
+const PLAN = [
+  { day: 'จ. 7 ก.ย.', title: 'ฐานราก + ชุดทดสอบ', detail: 'docker compose (postgres + spring + ollama + ocr-worker), สร้าง schema ทั้งหมด, เรียน Spring Boot จากการทำ CRUD ทะเบียนครู + import CSV, เริ่มรวบรวมตารางทดสอบ 20 หน้า', out: 'compose up ขึ้นครบ · นำเข้าทะเบียนครูได้' },
+  { day: 'อ. 8 ก.ย.', title: 'OCR pipeline', detail: 'ocr-worker (FastAPI + Typhoon OCR), ทางด่วน PDFBox, upload endpoint + คิวใน Postgres, deskew/normalize, พิมพ์คำตอบที่ถูกของชุดทดสอบให้เสร็จ', out: 'อัปไฟล์แล้วได้แถว session ในฐานข้อมูล' },
+  { day: 'พ. 9 ก.ย.', title: 'Parser + จับคู่ชื่อครู', detail: 'แปลงผล OCR เป็นแถว session ให้ครบทุกฟิลด์ (รวมสอนร่วม, ท/ป, ช่วงสัปดาห์), TeacherResolver + ตาราง alias, รันชุดทดสอบครั้งแรกและได้ตัวเลขความแม่นชุดแรก', out: 'มีตัวเลข % ครั้งแรก — จุดตัดสินว่าโครงการรอด' },
+  { day: 'พฤ. 10 ก.ย.', title: 'หน้าตรวจทาน', detail: 'React: อัปโหลด + polling, split view ตารางเทียบรูป, ลากการ์ดย้ายคาบ/ขยายเวลา, จับคู่ครูจากทะเบียน, บันทึก field_correction', out: 'ตรวจทานไฟล์จริงได้ครบวงจร' },
+  { day: 'ศ. 11 ก.ย.', title: 'แชท', detail: 'ScheduleQueryService + tool 6 ตัว, ChatController ต่อ Ollama แบบ tool-calling, fast path regex, ป้ายความมั่นใจ + ลิงก์รูปต้นฉบับ, หน้าแชทมือถือ', out: 'ตอบ 4 คำถามหลักได้จากข้อมูลจริง' },
+  { day: 'ส. 12 ก.ย.', title: 'วัดผล + ปิดช่องโหว่', detail: 'รันชุดทดสอบ 20 หน้าเต็ม ออกรายงานความแม่นรายฟิลด์, ทดสอบคำถาม 30 ข้อรวมข้อที่ไม่มีคำตอบ, จับ timeout/ล้มเหลว, เขียนรายงานผลการทดลอง', out: 'ตารางผลการทดลองพร้อมใส่เล่ม' },
+  { day: 'อา. 13 ก.ย.', title: 'ส่งงาน', detail: 'ติดตั้งใหม่บนเครื่องเปล่าเพื่อพิสูจน์ว่า compose up ใช้ได้, ซ้อมสาธิต 3 สถานการณ์ (อัปรูปถ่าย → ตรวจทาน → ถามแชท), เตรียมคำตอบคำถามกรรมการ', out: 'ระบบ + เอกสาร + สไลด์' }
+];
+
+const TECH = [
+  { layer: 'Frontend', stack: 'React 18 + TypeScript + Vite', why: 'UI ทั้งหมด (อัปโหลด/ตรวจทาน/แชท) — โปรเจกต์เล็ก ไม่ใส่ state library เพิ่ม ใช้ fetch + useState/useEffect ล้วน' },
+  { layer: 'Frontend', stack: 'React Router', why: 'สลับหน้าตามบทบาทที่ได้จาก SSO (student / staff / teacher)' },
+  { layer: 'Backend', stack: 'Java 21 + Spring Boot 3 (Web, Security Resource Server, Data JPA, Validation, Scheduling)', why: 'API, auth, business logic ทั้งหมดตามที่กำหนดว่าระบบต้องเป็น Java' },
+  { layer: 'Backend', stack: 'Flyway', why: 'จัดการ schema เป็นเวอร์ชัน รันอัตโนมัติตอน boot — กันปัญหา schema ไม่ตรงกันระหว่างเครื่อง dev' },
+  { layer: 'Backend', stack: 'Maven', why: 'build tool เดียวกับที่ Spring Initializr สร้างให้ ไม่ต้องเรียนเพิ่ม' },
+  { layer: 'ฐานข้อมูล', stack: 'PostgreSQL 16', why: 'ตารางเชิงสัมพันธ์ทั้งหมด + ตาราง ocr_job ทำหน้าที่เป็นคิวงานแทน message queue' },
+  { layer: 'OCR sidecar', stack: 'Python 3.11 + FastAPI + Typhoon OCR 2B (int8, CPU)', why: 'Typhoon OCR รันบน JVM ไม่ได้ ต้องแยกเป็น service — ซ่อนไว้ใน Docker Compose' },
+  { layer: 'LLM sidecar', stack: 'Ollama + โมเดล 1.5–2B (q4)', why: 'ทำ tool-calling + เรียบเรียงคำตอบเท่านั้น ไม่เขียน SQL เอง' },
+  { layer: 'Infra', stack: 'Docker Compose (4 service: spring, postgres, ocr-worker, llm)', why: 'ผู้ใช้เห็นคำสั่งเดียว docker compose up — ไม่ต้องรู้ว่ามี Python อยู่ข้างใน' },
+  { layer: 'Auth', stack: 'OIDC ผ่าน Spring Security oauth2-resource-server', why: 'ต่อกับ SSO มหาวิทยาลัย · มี mock provider สำรองถ้าของจริงไม่พร้อมทัน' },
+  { layer: 'Testing', stack: 'JUnit5 + Testcontainers (BE) · Vitest + React Testing Library (FE) · pytest (sidecar)', why: 'Testcontainers รัน Postgres จริงตอนเทสต์ backend กันบั๊ก query ที่ mock DB มองไม่เห็น' }
+];
+
+const PIPELINE = [
+  {
+    group: 'Frontend (FE)',
+    items: [
+      { id: 'FE-1', what: 'Auth guard', io: 'SSO token → role (student|staff|teacher) → เส้นทางที่เข้าได้', dep: '—' },
+      { id: 'FE-2', what: 'ฟอร์มอัปโหลด', io: 'ไฟล์ + kind/semester/week → เรียก BE-1', dep: 'FE-1' },
+      { id: 'FE-3', what: 'Job status poller', io: 'jobId → poll ทุก 3 วิ → เรียก BE-3', dep: 'FE-2' },
+      { id: 'FE-4', what: 'หน้าตรวจทาน (split view)', io: 'sessions+conf จาก BE-6 → แก้/ลาก/จับคู่ครู → เรียก BE-7/BE-5', dep: 'FE-3' },
+      { id: 'FE-5', what: 'หน้าแชท', io: 'ข้อความผู้ใช้ → เรียก BE-9 → แสดงคำตอบ+ป้ายความมั่นใจ+ลิงก์รูป', dep: 'FE-1' },
+      { id: 'FE-6', what: 'ทะเบียนครู + รายงานความแม่น', io: 'CSV → BE-11 · ดึงตัวเลข % จาก BE-12', dep: 'FE-1' }
+    ]
+  },
+  {
+    group: 'Backend (BE)',
+    items: [
+      { id: 'BE-1', what: 'UploadController', io: 'multipart file → sha256 กันซ้ำ → เขียน volume → INSERT timetable_doc', dep: 'DB-2' },
+      { id: 'BE-2', what: 'ทางด่วน PDFBox', io: 'PDF ที่มี text layer → ดึงข้อความ+พิกัดตรง → ข้าม ML-1/ML-2', dep: 'BE-1' },
+      { id: 'BE-3', what: 'OcrJobWorker (poll)', io: 'ocr_job(state=queued) → lock แถว → เรียก ML-2', dep: 'BE-1, DB-2' },
+      { id: 'BE-4', what: 'Parser ผลลัพธ์ OCR', io: 'markdown+bbox+conf จาก ML-2 → INSERT session, session_teacher', dep: 'BE-3, DB-3' },
+      { id: 'BE-5', what: 'TeacherResolver', io: 'alias_text → จับคู่ teacher_alias อัตโนมัติ หรือคืนตัวเลือกให้คนยืนยัน', dep: 'BE-4, DB-1' },
+      { id: 'BE-6', what: 'ReviewController', io: 'docId → session ทั้งหมด+conf+bbox+ตัวเลือกครู', dep: 'BE-5' },
+      { id: 'BE-7', what: 'บันทึกการแก้ไข', io: 'PATCH ค่าที่คนแก้ → UPDATE session + INSERT field_correction', dep: 'BE-6, DB-4' },
+      { id: 'BE-8', what: 'Publish gate', io: 'ตรวจว่าลายมือครบ 100% หรือยัง → UPDATE timetable_doc.status', dep: 'BE-7' },
+      { id: 'BE-9', what: 'ChatController', io: 'ข้อความ → ส่ง tool list ไป ML-3 → รับ tool call → เรียก ScheduleQueryService', dep: 'DB-5' },
+      { id: 'BE-10', what: 'Guardrail ตรวจ hallucination', io: 'คำตอบจาก ML-3 → เทียบกับผล SQL จริง → ผ่าน/ทิ้งไปใช้ template', dep: 'BE-9' },
+      { id: 'BE-11', what: 'นำเข้าทะเบียนครู CSV', io: 'ไฟล์ CSV → validate แถว → INSERT/UPDATE teacher', dep: 'DB-1' },
+      { id: 'BE-12', what: 'AccuracyReport', io: 'field_correction → GROUP BY field/doc_kind → % ต่อฟิลด์', dep: 'BE-7, DB-4' }
+    ]
+  },
+  {
+    group: 'ฐานข้อมูล (DB / Flyway)',
+    items: [
+      { id: 'DB-1', what: 'Baseline: teacher, teacher_alias, subject, room, class_group', io: 'migration V1 → schema อ้างอิงพร้อมก่อนงานอื่น', dep: '—' },
+      { id: 'DB-2', what: 'timetable_doc, ocr_job', io: 'migration V2 → รองรับอัปโหลด+คิวงาน', dep: 'DB-1' },
+      { id: 'DB-3', what: 'session, session_teacher', io: 'migration V3 → แกนกลางของตาราง', dep: 'DB-2' },
+      { id: 'DB-4', what: 'field_correction', io: 'migration V4 → เก็บคู่ (ค่า OCR, ค่าคน) ทุกครั้งที่แก้', dep: 'DB-3' },
+      { id: 'DB-5', what: 'v_teacher_schedule (view)', io: 'migration V5 → derive ตารางอาจารย์จาก session JOIN session_teacher', dep: 'DB-3' },
+      { id: 'DB-6', what: 'ดัชนี', io: 'ix_job_poll, ix_session_day, ix_st_teacher → เร็วพอสำหรับ poll ทุก 3–5 วิ', dep: 'DB-2, DB-3' }
+    ]
+  },
+  {
+    group: 'OCR + LLM sidecar (ML)',
+    items: [
+      { id: 'ML-1', what: 'Preprocess', io: 'รูปดิบ → deskew + normalize contrast + ตัดขอบ', dep: '—' },
+      { id: 'ML-2', what: 'Typhoon OCR inference', io: 'รูปที่ปรับแล้ว → markdown ตาราง + bbox + confidence รายเซลล์', dep: 'ML-1' },
+      { id: 'ML-3', what: 'Ollama tool-calling', io: 'prompt+tool list จาก BE-9 → เลือก tool + พารามิเตอร์ (ไม่แตะ SQL)', dep: '—' },
+      { id: 'ML-4', what: 'เรียบเรียงคำตอบ', io: 'ผล SQL จาก BE-9 → ประโยคไทย → ส่งกลับให้ BE-10 ตรวจ', dep: 'ML-3' }
+    ]
+  }
+];
+
+const CHAINS = [
+  { title: 'สายอัปโหลด → ใช้งานได้', chain: 'FE-2 → BE-1 → BE-2 (ถ้ามี text layer, จบสาย) หรือ BE-3 → ML-1 → ML-2 → BE-4 → BE-5 → FE-3 (poll) → FE-4 → BE-6 → BE-7 → BE-8 → publish' },
+  { title: 'สายนักศึกษาถาม → ได้คำตอบ', chain: 'FE-5 → BE-9 → ML-3 → ScheduleQueryService (SQL parameterized) → DB-5/session → ML-4 → BE-10 → FE-5 (แสดงผล+ป้ายความมั่นใจ+ลิงก์รูป)' }
+];
+
+const RISKS = [
+  { risk: 'Typhoon OCR ช้ากว่าที่คาดบนโน้ตบุ๊ค 8 GB หรือ RAM ไม่พอ', level: 'สูง', plan: 'ลด resolution ที่ส่งเข้าโมเดล, ตัดหน้าเป็นแถบตามแถววันแล้วส่งทีละแถบ, และถ้ายังไม่ไหว ให้เช่า GPU cloud ชั่วโมงเดียวรันชุดทดสอบล่วงหน้าเพื่อให้มีตัวเลขในรายงาน แล้ว demo สดด้วยไฟล์ที่รันไว้แล้ว' },
+  { risk: 'ยังไม่มีตารางจริงและทะเบียนครูจริงจากภาควิชา', level: 'สูง', plan: 'ใช้ตารางวิทยาลัยอาชีวะ/เทคนิคที่เผยแพร่สาธารณะเป็นชุดทดสอบหลัก และสร้างทะเบียนครูสมมติที่มีชื่อต้นซ้ำโดยเจตนา เพื่อพิสูจน์กลไกจับคู่ให้เห็นชัด' },
+  { risk: 'ยังไม่เคยใช้ Spring Boot มาก่อน', level: 'กลาง', plan: 'กันวันแรกไว้เรียนด้วยงานจริงที่ง่ายสุด (CRUD ทะเบียนครู) และใช้ Spring Initializr + โครง controller-service-repository แบบตรงไปตรงมา ไม่ใช้ฟีเจอร์ที่ไม่จำเป็น' },
+  { risk: 'LLM 2B เลือก tool ผิดหรือสำนวนไทยแข็ง', level: 'กลาง', plan: 'มี fast path แบบ regex สำหรับคำถามยอดฮิต และ template คำตอบสำรองทุก tool ถ้า LLM ล้มเหลวหรือ timeout ยังตอบได้เสมอ' },
+  { risk: 'SSO มหาวิทยาลัยขอใช้ไม่ได้ทันกำหนด', level: 'กลาง', plan: 'ทำ mock OIDC provider ในเครื่องพร้อมสวิตช์ config สลับไปของจริง เอกสารระบุชัดว่าเป็นการจำลอง' },
+  { risk: 'ทำไม่ครบทุกฟีเจอร์ในวันส่ง', level: 'กลาง', plan: 'แผนเรียงตามลำดับที่ทุกวันมีของ demo ได้ · FR-15 ถึง FR-17 ถูกจัดเป็น "ถ้าเหลือเวลา" ไว้แล้ว และเอกสารอธิบายเหตุผลการตัดขอบเขต' }
+];
+
+class Component extends DCLogic {
+  renderVals() {
+    const mstyle = m => {
+      const solid = m === 'POST' || m === 'PUT' || m === 'PATCH' || m === 'DELETE';
+      return 'font-family:\'IBM Plex Mono\',monospace;font-size:8.5pt;font-weight:600;padding:2px 7px;white-space:nowrap;' +
+        (solid ? 'background:var(--color-accent);color:var(--color-bg)' : 'border:1px solid var(--color-accent);color:var(--color-accent-800)');
+    };
+    return {
+      frs: FRS.map(r => Object.assign({ key: r.id }, r)),
+      nfrs: NFRS.map(r => Object.assign({ key: r.id }, r)),
+      metrics: METRICS.map(m => Object.assign({ key: m.field }, m)),
+      workflow: PROCESSING_WORKFLOW.map(w => Object.assign({ key: w.step }, w, { artifact: w.artifact.replace(/\n/g, ' · ') })),
+      tech: TECH.map((t, i) => Object.assign({ key: i }, t)),
+      pipeline: PIPELINE.map(g => ({ key: g.group, group: g.group, items: g.items.map(p => Object.assign({ key: p.id }, p)) })),
+      chains: CHAINS.map((c, i) => Object.assign({ key: i }, c)),
+      ddl: DDL.map(d => Object.assign({ key: d.name }, d)),
+      endpoints: ENDPOINTS.map(g => ({
+        key: g.group, group: g.group, step: g.step,
+        items: g.items.map(e => Object.assign({ key: e.method + e.path, methodStyle: mstyle(e.method) }, e))
+      })),
+      tools: TOOLS.map(t => Object.assign({ key: t.name }, t)),
+      plan: PLAN.map(p => Object.assign({ key: p.day }, p)),
+      risks: RISKS.map((r, i) => Object.assign({ key: i }, r))
+    };
+  }
+}
+</script>
+</body>
+</html>

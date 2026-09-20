@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/industry-e7ec5e9f-e201-4590-a3ca-0e379e46c52e/styles.css">
+<script src="_ds/industry-e7ec5e9f-e201-4590-a3ca-0e379e46c52e/_ds_bundle.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+body{font-family:"Noto Sans Thai",Barlow,system-ui,sans-serif;margin:0}
+h1,h2,h3,h4,h5,h6{font-family:"Noto Sans Thai",system-ui,sans-serif;font-weight:600}
+a{color:var(--color-accent-700);text-decoration:none}
+a:hover{color:var(--color-accent-800);text-decoration:underline}
+</style>
+</helmet>
+
+<div style="display:flex;flex-direction:column;min-height:100vh;background:var(--color-bg);color:var(--color-text)">
+
+  <div style="padding:22px 26px 0;max-width:1240px;width:100%;margin:0 auto">
+    <div style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--color-accent-700)">SYSTEM DESIGN · v1 · 6 ก.ย. 2569</div>
+    <h1 style="font-size:36px;margin:6px 0 4px">AI Chat ตารางสอนอาจารย์</h1>
+    <div style="font-size:14px;color:var(--color-neutral-700);max-width:760px;text-wrap:pretty">React + Spring Boot (Java 21) + Postgres · OCR ตารางไทยด้วย Typhoon OCR 2B int8 บน CPU · ตอบคำถามด้วย LLM 2B เรียก tool ไปดึง SQL · รันทั้งหมดบนโน้ตบุ๊ค 8 GB ผ่าน Docker Compose</div>
+
+    <div style="display:flex;gap:0;margin:20px 0 0;flex-wrap:wrap;border-bottom:1px solid var(--color-divider)">
+      <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="6">
+        <button onClick="{{ t.onClick }}" style="{{ t.style }}">{{ t.label }}</button>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="max-width:1240px;width:100%;margin:0 auto;padding:22px 26px 60px">
+
+    <div style="font-size:13px;color:var(--color-neutral-700);margin-bottom:18px;max-width:820px;text-wrap:pretty">{{ view.intro }}</div>
+
+    <sc-if value="{{ isContext }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;gap:18px;align-items:stretch;flex-wrap:wrap">
+        <div style="flex:1 1 200px;min-width:180px;display:flex;flex-direction:column;gap:12px">
+          <sc-for list="{{ ctx.actors }}" as="a" hint-placeholder-count="2">
+            <div class="blueprint" style="padding:12px;min-width:0">
+              <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+              <div class="card-kicker" style="color:var(--color-accent-700);font-size:11px">{{ a.kind }}</div>
+              <div style="font-size:15px;font-weight:600;margin:2px 0 4px">{{ a.name }}</div>
+              <div style="font-size:12px;color:var(--color-neutral-700)">{{ a.does }}</div>
+              <div style="font-size:11px;color:var(--color-accent-700);margin-top:6px">→ {{ a.via }}</div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="flex:1 1 300px;min-width:260px;display:flex;align-items:center">
+          <div class="blueprint" style="padding:18px;width:100%;background:var(--color-accent-900);color:var(--color-bg);min-width:0">
+            <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;opacity:.75">ระบบที่เรากำลังสร้าง</div>
+            <div style="font-size:22px;font-weight:600;margin:4px 0 8px">Timetable Assistant</div>
+            <div style="font-size:12px;line-height:1.6;opacity:.9">รับไฟล์ตารางเรียน/ตารางสอน → OCR ด้วย VLM ไทย → ให้คนตรวจทานช่องที่ไม่มั่นใจ → เก็บเป็นตารางเชิงสัมพันธ์ → ตอบคำถามนักศึกษาผ่านแชท</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:12px">
+              <sc-for list="{{ ctx.caps }}" as="c" hint-placeholder-count="4">
+                <span style="font-size:11px;padding:3px 9px;border:1px solid rgba(242,242,243,.4)">{{ c.v }}</span>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+        <div style="flex:1 1 200px;min-width:180px;display:flex;flex-direction:column;gap:12px">
+          <sc-for list="{{ ctx.externals }}" as="e" hint-placeholder-count="2">
+            <div class="blueprint" style="padding:12px;min-width:0">
+              <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+              <div class="card-kicker" style="color:var(--color-accent-700);font-size:11px">{{ e.kind }}</div>
+              <div style="font-size:15px;font-weight:600;margin:2px 0 4px">{{ e.name }}</div>
+              <div style="font-size:12px;color:var(--color-neutral-700)">{{ e.does }}</div>
+              <div style="font-size:11px;color:var(--color-accent-700);margin-top:6px">← {{ e.via }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isWorkflow }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;gap:0;align-items:stretch;flex-wrap:wrap">
+        <sc-for list="{{ workflow }}" as="w" hint-placeholder-count="5">
+          <div style="display:flex;align-items:center;flex:1 1 210px;min-width:200px">
+            <div class="blueprint" style="padding:12px;min-width:0;flex:1">
+              <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+              <div class="card-kicker" style="color:var(--color-accent-700);font-size:11px">{{ w.step }}</div>
+              <div style="font-size:16px;font-weight:600;margin:2px 0 2px">{{ w.label }}</div>
+              <div style="font-size:11px;color:var(--color-accent-800);margin-bottom:8px">{{ w.thai }}</div>
+              <div style="font-size:11px;color:var(--color-neutral-700);line-height:1.55;margin-bottom:8px;text-wrap:pretty">{{ w.mapped }}</div>
+              <div style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--color-accent-700);margin-bottom:2px">โมเดล / เครื่องมือ</div>
+              <div style="font-size:11px;line-height:1.5;margin-bottom:8px;text-wrap:pretty">{{ w.model }}</div>
+              <div style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--color-accent-700);margin-bottom:2px">ผลลัพธ์</div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--color-neutral-700);line-height:1.5">{{ w.artifact }}</div>
+            </div>
+            <div style="{{ w.arrowStyle }}">→</div>
+          </div>
+        </sc-for>
+      </div>
+      <div class="blueprint" style="margin-top:16px;padding:12px;min-width:0">
+        <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+        <div style="font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent-700);margin-bottom:6px">กติกาที่ยึดตลอด pipeline</div>
+        <p style="font-size:12px;line-height:1.6;color:var(--color-neutral-700);margin:0">AI (LLM tool layer) หยิบข้อมูลไปตอบผู้ใช้ได้เฉพาะ <strong>Step 5 · Ready Data</strong> เท่านั้น — ไม่เคยเห็นไฟล์ดิบ, markdown จาก OCR หรือข้อความที่ยังไม่ผ่านโครงสร้าง (ตรงกับ ADR-01: ไม่ทำ RAG บนข้อความ OCR ดิบ)</p>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isDataflow }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;gap:18px;align-items:stretch;flex-wrap:wrap;margin-bottom:18px">
+        <div style="flex:1 1 150px;min-width:140px;display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent-700)">External Entities</div>
+          <sc-for list="{{ dfd.entities }}" as="e" hint-placeholder-count="2">
+            <div class="blueprint" style="padding:10px;min-width:0">
+              <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+              <div style="font-size:13px;font-weight:600">{{ e.v }}</div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="flex:2 1 380px;min-width:280px;display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent-700)">Processes</div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px">
+            <sc-for list="{{ dfd.processes }}" as="p" hint-placeholder-count="7">
+              <div style="border:1px solid var(--color-divider);padding:8px 10px;min-width:0">
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--color-accent-700)">{{ p.id }}</div>
+                <div style="font-size:12px;font-weight:600;margin-top:2px;text-wrap:pretty">{{ p.v }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="flex:1 1 190px;min-width:170px;display:flex;flex-direction:column;gap:2px">
+          <div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent-700);margin-bottom:6px">Data Stores</div>
+          <sc-for list="{{ dfd.stores }}" as="d" hint-placeholder-count="5">
+            <div style="border-bottom:1px solid var(--color-divider);padding:6px 0">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600">{{ d.id }}</div>
+              <div style="font-size:11px;color:var(--color-neutral-700)">{{ d.v }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <div class="blueprint" style="padding:14px;min-width:0">
+        <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+        <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent-700);margin-bottom:8px">เส้นทางข้อมูล (Level 1)</div>
+        <sc-for list="{{ dfd.edges }}" as="ed" hint-placeholder-count="10">
+          <div style="display:flex;gap:10px;padding:5px 0;border-top:1px dotted var(--color-divider);flex-wrap:wrap">
+            <div style="width:190px;flex:none;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--color-accent-800)">{{ ed.path }}</div>
+            <div style="flex:1 1 260px;min-width:0;font-size:12px;color:var(--color-neutral-700)">{{ ed.data }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isContainer }}" hint-placeholder-val="{{ false }}">
+      <div style="border:1px dashed var(--color-accent-700);padding:16px">
+        <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent-700);margin-bottom:14px">docker compose · โน้ตบุ๊ค 8 GB · ไม่มี GPU</div>
+        <sc-for list="{{ layers }}" as="l" hint-placeholder-count="4">
+          <div style="margin-bottom:16px">
+            <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:8px;flex-wrap:wrap">
+              <div style="font-size:15px;font-weight:600">{{ l.title }}</div>
+              <div style="font-size:11px;color:var(--color-neutral-700)">{{ l.sub }}</div>
+              <div style="margin-left:auto;font-size:11px;color:var(--color-accent-800);white-space:nowrap">{{ l.mem }}</div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px">
+              <sc-for list="{{ l.boxes }}" as="b" hint-placeholder-count="3">
+                <div style="{{ b.style }}">
+                  <div style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--color-accent-700)">{{ b.tech }}</div>
+                  <div style="font-size:13px;font-weight:600;margin:3px 0 4px;text-wrap:pretty">{{ b.name }}</div>
+                  <div style="font-size:11px;color:var(--color-neutral-700);line-height:1.5;text-wrap:pretty">{{ b.does }}</div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="font-size:11px;color:var(--color-accent-700);margin-top:8px">{{ l.link }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isSeq }}" hint-placeholder-val="{{ false }}">
+      <div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+          <sc-for list="{{ seq.lanes }}" as="l" hint-placeholder-count="4">
+            <span style="{{ l.style }}">{{ l.v }}</span>
+          </sc-for>
+        </div>
+        <sc-for list="{{ seq.steps }}" as="s" hint-placeholder-count="8">
+          <div style="display:flex;gap:14px;align-items:flex-start;padding:12px 0;border-top:1px solid var(--color-divider)">
+            <div style="width:30px;flex:none;font-size:18px;font-weight:600;color:var(--color-accent-700);line-height:1.1">{{ s.n }}</div>
+            <div style="width:132px;flex:none">
+              <div style="{{ s.laneStyle }}">{{ s.lane }}</div>
+            </div>
+            <div style="flex:1 1 260px;min-width:0">
+              <div style="font-size:14px;font-weight:600;margin-bottom:3px;text-wrap:pretty">{{ s.title }}</div>
+              <div style="font-size:12px;color:var(--color-neutral-700);line-height:1.6;text-wrap:pretty">{{ s.detail }}</div>
+              <div style="{{ s.codeStyle }}">{{ s.code }}</div>
+            </div>
+            <div style="width:120px;flex:none;text-align:right;font-size:11px;color:var(--color-accent-800)">{{ s.timing }}</div>
+          </div>
+        </sc-for>
+        <div class="blueprint" style="margin-top:20px;padding:14px;min-width:0">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent-700);margin-bottom:8px">ทางที่พลาดได้ และระบบทำอะไร</div>
+          <sc-for list="{{ seq.failures }}" as="f" hint-placeholder-count="3">
+            <div style="display:flex;gap:12px;padding:7px 0;border-top:1px dotted var(--color-divider);flex-wrap:wrap">
+              <div style="flex:1 1 220px;min-width:0;font-size:12px;font-weight:600">{{ f.when }}</div>
+              <div style="flex:2 1 300px;min-width:0;font-size:12px;color:var(--color-neutral-700)">{{ f.then }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isEr }}" hint-placeholder-val="{{ false }}">
+      <div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(258px,1fr));gap:14px">
+          <sc-for list="{{ entities }}" as="e" hint-placeholder-count="6">
+            <div style="{{ e.style }}">
+              <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px">
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600">{{ e.name }}</div>
+                <div style="margin-left:auto;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-accent-700);white-space:nowrap">{{ e.role }}</div>
+              </div>
+              <sc-for list="{{ e.fields }}" as="f" hint-placeholder-count="4">
+                <div style="display:flex;gap:8px;font-size:11px;padding:2px 0;border-bottom:1px dotted color-mix(in srgb, var(--color-text) 10%, transparent)">
+                  <div style="font-family:'IBM Plex Mono',monospace;flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ f.n }}</div>
+                  <div style="flex:none;color:var(--color-neutral-700);white-space:nowrap">{{ f.t }}</div>
+                </div>
+              </sc-for>
+              <div style="font-size:11px;color:var(--color-accent-700);margin-top:8px;line-height:1.5;text-wrap:pretty">{{ e.note }}</div>
+            </div>
+          </sc-for>
+        </div>
+        <div class="blueprint" style="margin-top:18px;padding:14px;min-width:0">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent-700);margin-bottom:8px">ความสัมพันธ์ที่สำคัญ</div>
+          <sc-for list="{{ relations }}" as="r" hint-placeholder-count="4">
+            <div style="display:flex;gap:12px;padding:7px 0;border-top:1px dotted var(--color-divider);flex-wrap:wrap">
+              <div style="flex:1 1 230px;min-width:0;font-family:'IBM Plex Mono',monospace;font-size:11px">{{ r.rel }}</div>
+              <div style="flex:2 1 300px;min-width:0;font-size:12px;color:var(--color-neutral-700)">{{ r.why }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isDecisions }}" hint-placeholder-val="{{ false }}">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px">
+        <sc-for list="{{ decisions }}" as="d" hint-placeholder-count="6">
+          <div class="blueprint" style="padding:14px;min-width:0">
+            <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            <div style="display:flex;align-items:baseline;gap:8px">
+              <div class="card-kicker" style="color:var(--color-accent-700);font-size:11px">{{ d.id }}</div>
+              <div style="margin-left:auto;font-size:10px;padding:2px 8px;background:var(--color-accent-100);color:var(--color-accent-800);white-space:nowrap">{{ d.status }}</div>
+            </div>
+            <div style="font-size:15px;font-weight:600;margin:4px 0 6px;text-wrap:pretty">{{ d.title }}</div>
+            <div style="font-size:12px;color:var(--color-neutral-700);line-height:1.6;margin-bottom:8px;text-wrap:pretty">{{ d.choice }}</div>
+            <div style="font-size:11px;line-height:1.6;color:var(--color-accent-800);text-wrap:pretty"><strong>ราคาที่จ่าย:</strong> {{ d.cost }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:900},&quot;initialView&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;context&quot;,&quot;workflow&quot;,&quot;dataflow&quot;,&quot;container&quot;,&quot;er&quot;,&quot;upload&quot;,&quot;chat&quot;,&quot;decisions&quot;],&quot;default&quot;:&quot;context&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;การแสดงผล&quot;}}">
+const CARD = 'border:1px solid var(--color-divider);padding:12px;min-width:0;background:transparent';
+
+const CONTEXT = {
+  actors: [
+    { kind: 'ผู้ใช้หลัก', name: 'นักศึกษา', does: 'ถามตารางสอนอาจารย์ / ห้องเรียน / เวลาว่างของอาจารย์ ผ่านแชท', via: 'React (มือถือ) · SSO มหาลัย' },
+    { kind: 'ผู้ใช้หลัก', name: 'เจ้าหน้าที่ภาควิชา', does: 'อัปโหลดไฟล์ตาราง ตรวจทานช่องที่ OCR ไม่มั่นใจ จับคู่ชื่อครูกับทะเบียน', via: 'React (จอใหญ่) · SSO มหาลัย' },
+    { kind: 'ผู้ใช้รอง', name: 'อาจารย์', does: 'ดูตารางสอนตัวเองที่ระบบสร้างขึ้น และแจ้งว่าผิดตรงไหน', via: 'React · SSO มหาลัย' }
+  ],
+  caps: [{ v: 'OCR ตารางไทย' }, { v: 'ตรวจทานโดยคน' }, { v: 'กลับข้างตารางกลุ่ม→อาจารย์' }, { v: 'แชทถาม-ตอบ' }, { v: 'วัดความแม่นรายฟิลด์' }],
+  externals: [
+    { kind: 'ข้อมูลตั้งต้น', name: 'ทะเบียนครู', does: 'ชื่อ-นามสกุล-รหัสครูของภาควิชา นำเข้าครั้งแรกด้วย CSV — จำเป็นเพราะในตารางมีแค่ชื่อต้น', via: 'CSV import' },
+    { kind: 'แหล่งไฟล์', name: 'ระบบทะเบียน / ครูผู้สอน', does: 'PDF ตารางเรียนรายกลุ่ม และ PDF/รูปตารางสอนรายอาจารย์', via: 'อัปโหลดไฟล์ด้วยมือ' },
+    { kind: 'ภายนอก', name: 'มหาวิทยาลัย SSO', does: 'ยืนยันตัวตนและบอกบทบาท (นักศึกษา / เจ้าหน้าที่ / อาจารย์)', via: 'OIDC' }
+  ]
+};
+
+const LAYERS = [
+  {
+    title: '1 · Frontend', sub: 'React 18 + Vite · TypeScript', mem: '~0 (เสิร์ฟเป็น static)',
+    boxes: [
+      { name: 'Student Chat (มือถือ)', tech: 'React', does: 'ช่องแชท, ป้ายความมั่นใจ, ลิงก์ดูรูปตารางต้นฉบับ' },
+      { name: 'Upload + OCR Review (จอใหญ่)', tech: 'React', does: 'อัปโหลด, ดูสถานะคิว, การ์ดวิชาลากย้ายคาบ, จับคู่ชื่อครู' },
+      { name: 'Teacher Registry', tech: 'React', does: 'นำเข้า CSV, แก้ทะเบียนครู, ดู alias ที่ระบบจำไว้' }
+    ],
+    link: 'คุยกับ backend ด้วย REST + JSON เท่านั้น · สถานะงาน OCR ใช้ polling ทุก 3 วินาที (ไม่มี WebSocket)'
+  },
+  {
+    title: '2 · Backend — Java', sub: 'Spring Boot 3 · Java 21 · ชั้นเดียวที่ถือ business logic', mem: '~700 MB',
+    boxes: [
+      { name: 'AuthFilter', tech: 'Spring Security · OIDC', does: 'รับ token จาก SSO มหาลัย แล้วแปลงเป็นบทบาท student / staff / teacher' },
+      { name: 'UploadController', tech: 'REST', does: 'รับไฟล์ → เขียนลง volume → คำนวณ sha256 กันอัปซ้ำ → สร้างแถวใน ocr_job' },
+      { name: 'OcrJobWorker', tech: '@Scheduled poll', does: 'ดึงงานสถานะ queued จากตาราง jobs ทีละ 1 → ยิง HTTP ไป ocr-worker → เขียนผลลง session/session_teacher' },
+      { name: 'ReviewController', tech: 'REST', does: 'ส่งช่องที่ confidence ต่ำให้หน้าตรวจทาน และรับค่าที่คนแก้ + บันทึกลง field_correction' },
+      { name: 'TeacherResolver', tech: 'Service', does: 'ชื่อต้น → teacher_id ผ่านตาราง alias; ถ้าซ้ำหรือไม่พบ ส่งกลับให้คนเลือก แล้วจำถาวร' },
+      { name: 'ScheduleQueryService', tech: 'Service · เปิดเป็น tool ให้ LLM', does: 'ฟังก์ชันจำกัดชุด: teacherDay, subjectWhere, teacherFree, roomFree, groupWeek — สร้าง SQL แบบ parameterized เท่านั้น' },
+      { name: 'ChatController', tech: 'REST', does: 'ส่ง prompt + รายการ tool ไปที่ llm, รับ tool call, เรียก ScheduleQueryService, ส่งผลกลับให้ LLM เรียบเรียง' },
+      { name: 'AccuracyReport', tech: 'Service', does: 'อ่าน field_correction เทียบกับค่าที่ OCR ทำนาย → ออกรายงานความแม่นแยกรายฟิลด์เป็น %' }
+    ],
+    link: 'Java ไม่รันโมเดลเอง — เรียก sidecar ผ่าน HTTP บน network ภายในของ compose ทั้งหมด'
+  },
+  {
+    title: '3 · Model sidecars — Python (ซ่อนใน compose)', sub: 'อาจารย์เห็นเป็นระบบเดียว: docker compose up', mem: '~5.2 GB รวม',
+    boxes: [
+      { name: 'ocr-worker', tech: 'FastAPI · Typhoon OCR 2B int8', does: 'POST /ocr รับรูป/หน้า PDF → คืน markdown ตาราง + bounding box + confidence รายเซลล์ · ~60–120 วิ/หน้าบน CPU' },
+      { name: 'pdf-text-extract', tech: 'ในตัว Java (PDFBox)', does: 'PDF ที่มี text layer ข้าม OCR ไปเลย — เร็วและแม่นกว่ามาก ใช้เป็นทางด่วนก่อนเสมอ' },
+      { name: 'llm', tech: 'Ollama · โมเดล 1.5B–2B q4', does: 'POST /api/chat แบบ tool-calling · ~2.5 GB · ตอบไทยได้แต่สำนวนแข็ง จึงให้เรียบเรียงจากผล SQL เท่านั้น ห้ามคิดข้อมูลเอง' }
+    ],
+    link: 'OCR ทำงานเป็นคิวทีละงาน — จึงไม่แย่ง RAM กับ llm ที่ค้างในหน่วยความจำตลอด'
+  },
+  {
+    title: '4 · Storage', sub: 'Postgres 16 + volume', mem: '~400 MB',
+    boxes: [
+      { name: 'postgres', tech: 'Postgres 16', does: 'ตารางเชิงสัมพันธ์ทั้งหมด + ตาราง ocr_job ที่ทำหน้าที่เป็นคิวงาน (ไม่มี RabbitMQ)' },
+      { name: 'uploads volume', tech: 'Docker volume', does: 'ไฟล์ต้นฉบับจริง เก็บ path ไว้ใน timetable_doc — ลบไฟล์ได้ตามคำขอ PDPA โดยไม่ต้องแตะข้อมูลตาราง' }
+    ],
+    link: 'ไม่มี vector DB — ตารางสอนเป็นข้อมูลโครงสร้าง ตอบด้วย SQL แม่นกว่าและตรวจสอบย้อนได้'
+  }
+];
+
+const SEQ_UPLOAD = {
+  lanes: ['เจ้าหน้าที่', 'React', 'Spring Boot', 'ocr-worker', 'Postgres'],
+  steps: [
+    { lane: 'เจ้าหน้าที่ → React', title: 'เลือกไฟล์ตาราง แล้วบอกว่าเป็นตารางของอะไร', detail: 'ต้องระบุว่าเป็น "ตารางเรียนรายกลุ่ม" หรือ "ตารางสอนรายอาจารย์" พร้อมภาคเรียนและช่วงสัปดาห์ — ระบบเดาเองไม่ได้และเดาผิดจะทำให้ข้อมูลปนกัน', code: '', timing: '' },
+    { lane: 'React → Spring', title: 'POST /api/docs (multipart)', detail: 'ส่งไฟล์ + kind + semester + weekFrom/weekTo', code: '201 { docId, jobId, status:"queued" }', timing: '< 1 วิ' },
+    { lane: 'Spring', title: 'เขียนไฟล์ลง volume + กันอัปซ้ำ', detail: 'คำนวณ sha256 ถ้าเคยอัปแล้วให้ใช้ผล OCR เดิม ไม่รันซ้ำ (ประหยัดเวลามาก เพราะ 1 หน้า = นาที)', code: 'INSERT timetable_doc, ocr_job(state=queued)', timing: '< 1 วิ' },
+    { lane: 'Spring', title: 'ทางด่วน: ถ้า PDF มี text layer ข้าม OCR', detail: 'PDFBox ดึงข้อความ+พิกัดออกมาตรงๆ ความมั่นใจตั้งเป็น 1.0 ทุกฟิลด์ ไม่ต้องเข้าคิว VLM เลย', code: 'state=done, engine="pdfbox"', timing: '1–3 วิ/หน้า' },
+    { lane: 'OcrJobWorker → ocr-worker', title: 'งานที่เหลือเข้าคิว รันทีละ 1 งาน', detail: 'worker poll ตาราง jobs ทุก 5 วิ ล็อกแถวด้วย SELECT ... FOR UPDATE SKIP LOCKED แล้วยิง POST /ocr — รันทีละงานเพื่อไม่ให้ RAM แตกบนเครื่อง 8 GB', code: 'state=running', timing: '60–120 วิ/หน้า' },
+    { lane: 'ocr-worker → Spring', title: 'คืนโครงตาราง + confidence รายเซลล์', detail: 'Typhoon OCR คืน markdown ที่รักษาโครงตารางไว้ แล้ว Java แปลงเป็นแถว session: วัน/คาบเริ่ม/จำนวนคาบ/รหัสวิชา/ห้อง/ชื่อครู พร้อม confidence แยกรายฟิลด์', code: 'INSERT session, session_teacher', timing: '' },
+    { lane: 'Spring · TeacherResolver', title: 'พยายามจับคู่ชื่อต้นกับทะเบียนครูอัตโนมัติ', detail: 'ถ้าชื่อต้นตรงกับครูคนเดียว → ผูกเลย · ถ้าซ้ำหลายคนหรือไม่พบ → ทิ้งเป็น alias ที่ยังไม่ผูก และ flag ให้คนตัดสิน', code: 'UPDATE session_teacher SET teacher_id', timing: '' },
+    { lane: 'React', title: 'หน้าอัปโหลด poll สถานะทุก 3 วิ', detail: 'GET /api/jobs/{id} คืน state + เปอร์เซ็นต์หน้าที่ทำเสร็จ พร้อมจำนวนช่องที่ต้องตรวจ', code: '{ state:"done", flagged:14 }', timing: 'ทุก 3 วิ' },
+    { lane: 'เจ้าหน้าที่ → React', title: 'ตรวจทานเฉพาะช่องที่ confidence < 85%', detail: 'คลิกการ์ดวิชา → กรอบสว่างบนรูปต้นฉบับ → แก้ค่า, ลากย้ายวัน/คาบ, ลากขอบขยายเวลา, เพิ่มครูสอนร่วม, เลือกครูจากทะเบียน', code: 'PATCH /api/sessions/{id}', timing: '~10 วิ/ช่อง' },
+    { lane: 'Spring → Postgres', title: 'ทุกการแก้ถูกบันทึกเป็นคู่ (ค่า OCR, ค่าคน)', detail: 'นี่คือแหล่งข้อมูลเดียวที่ทำให้วัดความแม่นรายฟิลด์เป็น % ได้ — เก็บทั้งค่าที่ AI ทำนายและค่าที่คนยืนยัน', code: 'INSERT field_correction', timing: '' },
+    { lane: 'Spring', title: 'publish: ทำให้ตารางใช้งานได้ทันที', detail: 'ตามที่เลือกไว้ ระบบ publish อัตโนมัติ — ช่องที่ยังไม่ตรวจก็ตอบได้ แต่ติดป้าย "ยังไม่ยืนยัน" เวลาแชทตอบ', code: 'UPDATE timetable_doc SET status="published"', timing: '' },
+    { lane: 'Spring', title: 'ถ้าเป็นตารางกลุ่มเรียน: กลับข้างเป็นตารางอาจารย์', detail: 'ตารางอาจารย์ไม่ได้เก็บซ้ำ — เป็น query ที่ join session_teacher เข้ามา ทำให้ไม่มีทางที่สองตารางจะไม่ตรงกันเอง เมื่อมีไฟล์ตารางสอนรายอาจารย์เข้ามาด้วยจะเทียบกันแล้ว flag ที่ขัดกัน (ไฟล์รายอาจารย์ชนะตามที่ตกลงไว้)', code: '', timing: '' }
+  ],
+  failures: [
+    { when: 'รูปถ่ายเอียง / มีเงา / ถ่ายเบี้ยว', then: 'ทำ deskew + normalize contrast ก่อนส่งเข้า OCR; ถ้ายังอ่านไม่ได้ทั้งหน้า จะขึ้นสถานะ needs_rescan พร้อมบอกว่าถ่ายใหม่อย่างไร ไม่ปล่อยข้อมูลเสียเข้าฐาน' },
+    { when: 'ocr-worker ตายหรือ RAM หมดกลางงาน', then: 'งานติดสถานะ running เกิน 10 นาที ถูกรีเซ็ตกลับ queued และนับ attempt เกิน 3 ครั้งจะขึ้น failed ให้คนดู — ไม่วนลูปกินเครื่องทิ้ง' },
+    { when: 'ตารางเขียนด้วยมือ', then: 'ตั้งเกณฑ์ confidence ต่ำกว่าปกติและบังคับให้คนตรวจทุกช่อง ไม่ publish อัตโนมัติ (งานวิจัยชี้ว่า CER ลายมือไทยอยู่ที่ 20–75% เชื่อไม่ได้)' },
+    { when: 'ชื่อต้นครูไม่มีในทะเบียน', then: 'ไม่เดาและไม่ทิ้ง — สร้าง alias ค้างไว้ และบล็อกไม่ให้ session นั้นตอบคำถาม "อาจารย์คนนี้ว่างไหม" จนกว่าจะผูกตัวคน' },
+    { when: 'อัปไฟล์เดิมซ้ำ', then: 'sha256 ตรงกับที่มี → ใช้ผลเดิม ไม่รัน OCR ใหม่' }
+  ]
+};
+
+const SEQ_CHAT = {
+  lanes: ['นักศึกษา', 'React', 'ChatController', 'llm (2B)', 'ScheduleQueryService', 'Postgres'],
+  steps: [
+    { lane: 'นักศึกษา → React', title: '"อ.ไมตรี พรุ่งนี้สอนอะไรบ้าง"', detail: '', code: '', timing: '' },
+    { lane: 'React → Spring', title: 'POST /api/chat', detail: 'ส่งข้อความ + conversationId + ตัวตนจาก SSO (ใช้กำหนดกลุ่มเรียนของผู้ถาม เวลาถามว่า "ตารางของฉัน")', code: '', timing: '< 50 ms' },
+    { lane: 'ChatController → llm', title: 'ส่ง prompt + รายการ tool ที่เรียกได้', detail: 'system prompt สั่งชัด: ห้ามตอบจากความรู้ตัวเอง ต้องเรียก tool ทุกครั้ง ถ้า tool ไม่คืนข้อมูลให้บอกว่าไม่มีข้อมูล', code: 'tools: teacherDay, subjectWhere, teacherFree, roomFree, groupWeek', timing: '' },
+    { lane: 'llm', title: 'เลือก tool + ถอดพารามิเตอร์จากภาษาไทย', detail: 'งานเดียวของ LLM ตรงนี้คือแปลง "พรุ่งนี้" เป็นวันจริง และ "อ.ไมตรี" เป็นคำค้นชื่อ — ไม่ได้ตอบเนื้อหา', code: 'teacherDay(name:"ไมตรี", date:"2569-09-07")', timing: '0.8–2 วิ' },
+    { lane: 'Spring · ScheduleQueryService', title: 'แก้ชื่อให้เป็นตัวคนก่อนค้น', detail: 'ชื่อต้น "ไมตรี" มีครู 2 คนในทะเบียน → ไม่เดา คืนรายการให้เลือก และ React แสดงเป็นปุ่มถามกลับ ("หมายถึงคนไหน")', code: 'SELECT * FROM teacher_alias WHERE alias_text = ?', timing: '< 10 ms' },
+    { lane: 'Spring → Postgres', title: 'SQL แบบ parameterized ที่เขียนไว้ล่วงหน้า', detail: 'LLM ไม่เคยเห็นและไม่เคยเขียน SQL — ตัด SQL injection และการตอบผิดเพราะ join พลาดออกทั้งคลาส', code: 'JOIN session s, session_teacher st, subject, room WHERE st.teacher_id=? AND s.day_of_week=? AND ? BETWEEN s.week_from AND s.week_to', timing: '< 20 ms' },
+    { lane: 'Postgres → Spring', title: 'ได้แถวจริงกลับมา พร้อม confidence และ docId', detail: 'ทุกแถวพ่วง confidence รายฟิลด์และรหัสไฟล์ต้นฉบับมาด้วย — จำเป็นสำหรับป้ายความมั่นใจและลิงก์ดูรูป', code: '3 rows', timing: '' },
+    { lane: 'ChatController → llm', title: 'ส่งผลกลับให้ LLM เรียบเรียงเป็นภาษาคน', detail: 'ส่งเฉพาะแถวที่ได้ ห้ามเติม ถ้า LLM ตอบเกินจากข้อมูล ระบบตัดทิ้งและ fallback ไปตอบแบบตาราง', code: '', timing: '1–2.5 วิ' },
+    { lane: 'React', title: 'แสดงคำตอบ + ป้ายความมั่นใจ + ลิงก์รูปต้นฉบับ', detail: 'ตามที่เลือกไว้ ครบทั้งสามอย่าง: ตอบเท่าที่รู้, ติดป้ายว่าช่องไหนยังไม่ยืนยัน, และกดดูรูปตารางที่ข้อมูลนี้มาจากได้', code: '', timing: 'รวม 2–5 วิ' },
+    { lane: 'ทางด่วน', title: 'คำถามยอดฮิตไม่ต้องผ่าน LLM', detail: 'ถ้า regex จับ pattern ได้ชัด (เช่น "CS101 เรียนห้องไหน") ข้ามชั้น LLM ไปเรียก tool ตรงๆ แล้วตอบด้วย template — ลดจาก 2–5 วิ เหลือต่ำกว่า 300 ms', code: '', timing: '< 300 ms' }
+  ],
+  failures: [
+    { when: 'ชื่อต้นตรงกับครูหลายคน', then: 'ไม่เดา — ถามกลับเป็นปุ่มให้เลือก แล้วจำไว้ในบทสนทนานั้น' },
+    { when: 'ไม่มีข้อมูลในฐาน', then: 'บอกตรงๆ ว่ายังไม่มีตารางของกลุ่ม/อาจารย์นั้นในระบบ + บอกว่าให้ติดต่อใคร ไม่แต่งคำตอบ' },
+    { when: 'ช่องที่ตอบยังไม่ผ่านการตรวจทาน', then: 'ตอบได้ แต่ติดป้าย "ยังไม่ยืนยัน · OCR มั่นใจ 62%" และให้กดดูรูปต้นฉบับ' },
+    { when: 'LLM ตอบเกินข้อมูลที่ให้ (hallucinate)', then: 'ตรวจว่าตัวเลข/รหัสวิชาในคำตอบมีอยู่ในผล SQL จริงไหม ถ้าไม่มี ทิ้งคำตอบแล้วใช้ template แทน' },
+    { when: 'llm ช้าเกิน 8 วิ', then: 'timeout แล้วตอบด้วย template จากผล SQL ที่ได้มาแล้ว — ผู้ใช้ยังได้คำตอบ' }
+  ]
+};
+
+const ENTITIES = [
+  { name: 'teacher', role: 'ทะเบียนครู', fields: [{ n: 'id', t: 'PK' }, { n: 'code', t: 'text uk' }, { n: 'prefix', t: 'text' }, { n: 'first_name', t: 'text' }, { n: 'last_name', t: 'text' }, { n: 'department', t: 'text' }, { n: 'active', t: 'bool' }], note: 'นำเข้าครั้งแรกด้วย CSV — ถ้าไม่มีตารางนี้ ระบบทำงานไม่ได้เลย เพราะในตารางเรียนมีแค่ชื่อต้น' },
+  { name: 'teacher_alias', role: 'หัวใจของระบบ', fields: [{ n: 'id', t: 'PK' }, { n: 'alias_text', t: 'text' }, { n: 'teacher_id', t: 'FK teacher' }, { n: 'confirmed_by', t: 'FK user' }, { n: 'confirmed_at', t: 'timestamptz' }, { n: 'source_doc_id', t: 'FK doc' }], note: 'คนจับคู่ "ไมตรี" → T-014 ครั้งเดียว ระบบจำตลอด · unique(alias_text) ถ้าซ้ำหลายคนจะไม่ผูกจนคนตัดสิน' },
+  { name: 'subject', role: 'วิชา', fields: [{ n: 'code', t: 'PK' }, { n: 'name_th', t: 'text' }, { n: 'theory_h', t: 'int (ท)' }, { n: 'practice_h', t: 'int (ป)' }, { n: 'credits', t: 'int (น)' }, { n: 'total_h', t: 'int (ช)' }], note: 'ท/ป/น/ช อ่านจากตารางส่วนหัวของไฟล์ ใช้ตรวจว่าจำนวนคาบในตารางสอดคล้องกับหน่วยกิตหรือไม่' },
+  { name: 'class_group', role: 'กลุ่มเรียน', fields: [{ n: 'code', t: 'PK' }, { n: 'name', t: 'text' }, { n: 'program', t: 'text' }, { n: 'advisor_teacher_id', t: 'FK teacher' }, { n: 'semester', t: 'text' }], note: 'เช่น 693190102 · สทท.4/2 · ครูที่ปรึกษา นางสายชล สุขนึ่ม' },
+  { name: 'room', role: 'ห้อง', fields: [{ n: 'code', t: 'PK' }, { n: 'name', t: 'text' }, { n: 'building', t: 'text' }, { n: 'capacity', t: 'int' }], note: 'ต้องมีรายการห้องทั้งหมดก่อน จึงจะตอบ "ห้องนี้ว่างไหม" ได้ถูก — ห้องที่ไม่รู้จักจะถูกสร้างเป็น unverified' },
+  { name: 'timetable_doc', role: 'ไฟล์ต้นฉบับ', fields: [{ n: 'id', t: 'PK' }, { n: 'kind', t: 'class_group|teacher' }, { n: 'file_path', t: 'text' }, { n: 'sha256', t: 'text uk' }, { n: 'semester', t: 'text' }, { n: 'week_from/to', t: 'int' }, { n: 'status', t: 'enum' }, { n: 'uploaded_by', t: 'FK user' }], note: 'ไฟล์จริงอยู่บน volume เก็บแค่ path · ลบไฟล์ได้ตาม PDPA โดยข้อมูลตารางยังอยู่' },
+  { name: 'ocr_job', role: 'คิวงาน (แทน MQ)', fields: [{ n: 'id', t: 'PK' }, { n: 'doc_id', t: 'FK doc' }, { n: 'state', t: 'queued|running|done|failed' }, { n: 'engine', t: 'typhoon|pdfbox' }, { n: 'attempts', t: 'int' }, { n: 'page_done/total', t: 'int' }, { n: 'started_at', t: 'timestamptz' }], note: 'SELECT ... FOR UPDATE SKIP LOCKED ทำให้ตารางนี้เป็นคิวที่ปลอดภัยพอสำหรับ worker ตัวเดียว' },
+  { name: 'session', role: 'คาบเรียน (แกนกลาง)', fields: [{ n: 'id', t: 'PK' }, { n: 'doc_id', t: 'FK doc' }, { n: 'subject_code', t: 'FK subject' }, { n: 'class_group_code', t: 'FK group' }, { n: 'room_code', t: 'FK room' }, { n: 'day_of_week', t: 'int 1-7' }, { n: 'period_start', t: 'int' }, { n: 'period_span', t: 'int' }, { n: 'kind', t: 'ท|ป' }, { n: 'week_from/to', t: 'int' }, { n: 'source', t: 'ocr|manual' }, { n: 'conf', t: 'jsonb' }, { n: 'bbox', t: 'jsonb' }], note: 'day_of_week 1–7 รองรับเสาร์-อาทิตย์สำหรับสาขาที่เรียนวันหยุด · bbox ใช้ชี้กรอบบนรูปต้นฉบับ · conf เก็บ confidence แยกรายฟิลด์' },
+  { name: 'session_teacher', role: 'สอน 2 คนอยู่ที่นี่', fields: [{ n: 'session_id', t: 'FK session' }, { n: 'teacher_id', t: 'FK teacher null' }, { n: 'alias_text', t: 'text' }, { n: 'ordinal', t: 'int' }, { n: 'confidence', t: 'numeric' }], note: 'many-to-many จึงรองรับครูสอนร่วมได้ไม่จำกัด · teacher_id เป็น null ได้ระหว่างที่ยังไม่จับคู่ตัวคน' },
+  { name: 'field_correction', role: 'ที่มาของตัวเลข %', fields: [{ n: 'id', t: 'PK' }, { n: 'session_id', t: 'FK session' }, { n: 'field', t: 'code|room|teacher|time' }, { n: 'ocr_value', t: 'text' }, { n: 'human_value', t: 'text' }, { n: 'ocr_conf', t: 'numeric' }, { n: 'corrected_by', t: 'FK user' }], note: 'ทุกครั้งที่คนแก้ = ground truth หนึ่งจุด · รายงานความแม่นรายฟิลด์คำนวณจากตารางนี้ตรงๆ ไม่ต้องทำ dataset แยก' },
+  { name: 'app_user', role: 'ผู้ใช้', fields: [{ n: 'id', t: 'PK' }, { n: 'sso_subject', t: 'text uk' }, { n: 'role', t: 'student|staff|teacher' }, { n: 'class_group_code', t: 'FK group null' }, { n: 'teacher_id', t: 'FK teacher null' }], note: 'class_group_code ทำให้ตอบ "ตารางเรียนของฉันสัปดาห์นี้" ได้โดยไม่ต้องถามซ้ำ' },
+  { name: 'chat_message', role: 'บทสนทนา', fields: [{ n: 'id', t: 'PK' }, { n: 'conversation_id', t: 'uuid' }, { n: 'user_id', t: 'FK user' }, { n: 'role', t: 'user|assistant' }, { n: 'text', t: 'text' }, { n: 'tool_calls', t: 'jsonb' }, { n: 'latency_ms', t: 'int' }], note: 'เก็บ tool_calls กับ latency ไว้ตอบอาจารย์ได้ว่าระบบตอบจากข้อมูลไหนและใช้เวลาเท่าไร' }
+];
+
+const RELATIONS = [
+  { rel: 'session 1 ── n session_teacher n ── 1 teacher', why: 'คาบหนึ่งมีครูได้หลายคน (เคสจริงจากไฟล์ตัวอย่าง: "สายชล ธัญญาเรศ" = ครู 2 คน) และครูหนึ่งคนสอนได้หลายคาบ' },
+  { rel: 'teacher_alias n ── 1 teacher', why: 'ชื่อต้นหลายแบบชี้ครูคนเดียวได้ ("ไมตรี", "ไมตรี ว.") แต่ชื่อต้นหนึ่งชี้ครูเกินหนึ่งคนไม่ได้ — บังคับด้วย unique จึงต้องให้คนตัดสิน' },
+  { rel: 'ตารางสอนอาจารย์ = VIEW ไม่ใช่ตาราง', why: 'derive จาก session JOIN session_teacher ทำให้ตารางกลุ่มเรียนกับตารางอาจารย์ไม่มีทางไม่ตรงกันจากการเก็บซ้ำ' },
+  { rel: 'session n ── 1 timetable_doc', why: 'ทุกคาบรู้ว่ามาจากไฟล์ไหน จึงลิงก์รูปต้นฉบับให้ผู้ถามดูได้ และเวลาอัปไฟล์ใหม่ทับ ก็รู้ว่าต้องแทนที่แถวชุดไหน' },
+  { rel: 'session (kind=teacher doc) เทียบกับ (kind=class_group doc)', why: 'เมื่อมีทั้งสองแหล่ง ระบบเทียบแล้วสร้างรายการ conflict — ตามที่ตกลงไว้ ไฟล์ตารางสอนรายอาจารย์เป็น source of truth' },
+  { rel: 'field_correction n ── 1 session', why: 'รายงาน "รหัสวิชา 98% / ห้อง 95% / ชื่อครู 90%" คือ COUNT(ocr_value = human_value) GROUP BY field จากตารางนี้' }
+];
+
+const DECISIONS = [
+  { id: 'ADR-01', status: 'ตัดสินแล้ว', title: 'ไม่ทำ RAG บนข้อความ OCR ดิบ — แปลงเป็นตารางเชิงสัมพันธ์ก่อน', choice: 'OCR → parse เป็นแถว session → ตอบด้วย SQL ที่เขียนไว้ล่วงหน้า ไม่มี vector DB ในระบบ', cost: 'ต้องเขียน parser และ tool เอง ไม่ได้ใช้ของสำเร็จ แต่ตารางสอนตอบผิดไม่ได้ และ RAG บนข้อความจะสับวัน/คาบ/ห้องกันมั่วเมื่อตารางถูกอ่านเป็นข้อความยาว' },
+  { id: 'ADR-02', status: 'ตัดสินแล้ว', title: 'Typhoon OCR 2B int8 บน CPU ไม่ใช่ Tesseract', choice: 'ใช้ VLM ที่เทรนกับเอกสารไทย เพราะงานวิจัยชี้ว่า Tesseract ทำ text recognition ไทยได้ 0.271 และลายมือ 0.071 บน ThaiOCRBench', cost: '60–120 วิ/หน้าบน CPU และกิน RAM ~3 GB จึงต้องเข้าคิวรันทีละงาน — ยอมได้เพราะคุณเลือกไว้ว่า OCR ไม่ต้อง real-time' },
+  { id: 'ADR-03', status: 'ตัดสินแล้ว', title: 'Python sidecar ซ่อนใน Docker Compose', choice: 'Java ถือ business logic, API, auth, SQL ทั้งหมด · Python รันแต่โมเดล · ส่งมอบเป็น docker compose up คำสั่งเดียว', cost: 'มี 2 ภาษาในโปรเจกต์ ต้องอธิบายในเล่มว่าทำไม — แต่ Typhoon OCR กับ LLM รันบน JVM ไม่ได้จริง ทางเลือกเดียวคือลดคุณภาพ OCR' },
+  { id: 'ADR-04', status: 'ตัดสินแล้ว', title: 'LLM 1.5–2B ทำแค่ 2 หน้าที่: เลือก tool และเรียบเรียงคำตอบ', choice: 'ห้าม LLM เขียน SQL และห้ามตอบจากความรู้ตัวเอง · มี fast path แบบ regex ให้คำถามยอดฮิตไม่ต้องผ่าน LLM เลย', cost: 'สำนวนไทยแข็งกว่าโมเดลใหญ่ และคำถามที่ซับซ้อนผิดปกติจะเลือก tool ผิด — แลกกับการอยู่ใน RAM 8 GB พร้อม Postgres ได้จริง' },
+  { id: 'ADR-05', status: 'ตัดสินแล้ว', title: 'ตาราง ocr_job ใน Postgres แทน message queue', choice: 'SELECT ... FOR UPDATE SKIP LOCKED + @Scheduled poll ทุก 5 วิ', cost: 'ขยายเป็นหลาย worker ไม่สวยเท่า RabbitMQ แต่ไม่มี service เพิ่ม ไม่มี RAM เพิ่ม และทีมคนเดียวดูแลไหว' },
+  { id: 'ADR-06', status: 'ตัดสินแล้ว', title: 'ตารางอาจารย์เป็น view ไม่ใช่ตารางที่เก็บซ้ำ', choice: 'derive จาก session JOIN session_teacher ทุกครั้งที่ query', cost: 'query ซับซ้อนกว่าเล็กน้อย แต่ตัดปัญหาข้อมูลสองชุดไม่ตรงกันออกทั้งหมด ซึ่งเป็นบั๊กที่หาที่สุดในระบบแบบนี้' },
+  { id: 'ADR-07', status: 'ตัดสินแล้ว', title: 'publish อัตโนมัติ + ป้ายความมั่นใจ ไม่บล็อกรอคนตรวจ', choice: 'ช่องที่ยังไม่ตรวจตอบได้ แต่ติดป้าย "ยังไม่ยืนยัน · OCR มั่นใจ 62%" พร้อมลิงก์รูปต้นฉบับ', cost: 'มีโอกาสที่นักศึกษาเห็นข้อมูลผิดก่อนถูกแก้ — จึงต้องมีป้ายและลิงก์รูปทุกครั้ง ห้ามตอบเปล่า' },
+  { id: 'ADR-08', status: 'ตัดสินแล้ว', title: 'ตารางเขียนด้วยมือไม่ publish อัตโนมัติ', choice: 'ถ้า classifier บอกว่าเป็นลายมือ → บังคับตรวจทุกช่องก่อนใช้งาน', cost: 'เจ้าหน้าที่ทำงานมากขึ้นกับไฟล์กลุ่มนี้ แต่ CER ลายมือไทย 20–75% เชื่อไม่ได้เลย' },
+  { id: 'ADR-09', status: 'ความเสี่ยงที่เหลือ', title: 'ยังไม่มีข้อมูลจริงและไม่มี ground truth', choice: 'สร้าง eval set จากตารางอาชีวะ/เทคนิคที่หาจากเน็ตหลายวิทยาลัยหลายฟอร์แมต แล้วพิมพ์คำตอบที่ถูกด้วยมือเป็นไฟล์เทียบ', cost: 'ถ้าไม่ทำภายใน 2 วันแรก จะไม่มีตัวเลข % ให้อาจารย์ในวันส่ง ซึ่งเป็นเกณฑ์ที่คุณบอกว่าเขาวัด — นี่คือความเสี่ยงอันดับ 1 ของกำหนดส่ง 13 ก.ย.' }
+];
+
+const WORKFLOW = [
+  { step: 'STEP 1', label: 'Raw Data', thai: 'ข้อมูลดิบ', mapped: 'ไฟล์ตารางที่เพิ่งอัปโหลด: PDF/รูป/สแกน/Excel — เอียง มีเงา ชื่อครูเป็นชื่อต้น ฟอร์แมตไม่คงที่ระหว่างวิทยาลัย', model: 'ไม่มีโมเดล — เก็บไฟล์ตามที่ได้รับ', artifact: 'timetable_doc (status=uploaded)\nไฟล์บน volume' },
+  { step: 'STEP 2', label: 'Data Cleansing', thai: 'การทำความสะอาดข้อมูล', mapped: 'ปรับภาพ (deskew / normalize contrast / ตัดขอบ), กันไฟล์ซ้ำด้วย sha256, แยกประเภทพิมพ์/ลายมือ, อ่านโครงตารางดิบออกมาเป็น markdown', model: 'Typhoon OCR 2B int8 (VLM) — อ่านตารางไทยพร้อม bbox + confidence ดิบรายเซลล์', artifact: 'markdown ตาราง + bbox ต่อเซลล์\n(ยังไม่ join กับ schema)' },
+  { step: 'STEP 3', label: 'Cleaned Data', thai: 'ข้อมูลที่สะอาดแล้ว', mapped: 'markdown ตารางที่อ่านออกครบ อ่านง่ายสำหรับคน แต่ยังเป็นตาราง 2 มิติ — ชื่อครูยังเป็นชื่อต้น รหัสวิชายังเป็น string ดิบ ไม่มี schema', model: 'ไม่มีโมเดลเพิ่ม — เป็นผลลัพธ์ตรงจาก Step 2', artifact: 'ผลลัพธ์ OCR ต่อหน้า\n(markdown + confidence)' },
+  { step: 'STEP 4', label: 'Data Preprocessing', thai: 'การเตรียมข้อมูล', mapped: 'Parser (Java) แปลง markdown → แถว session ตาม schema, TeacherResolver จับคู่ชื่อต้น↔teacher_id, ตรวจสอบหน่วยกิต, ส่งช่อง confidence ต่ำเข้าคิวให้คนตรวจทาน', model: 'Rule-based parser + alias-matching (exact → fuzzy) + คนตรวจทาน (human-in-the-loop) สำหรับกรณีกำกวม', artifact: 'session, session_teacher\n(teacher_id ยัง null ได้), field_correction' },
+  { step: 'STEP 5', label: 'Ready Data', thai: 'ข้อมูลพร้อมใช้', mapped: 'แถวที่ teacher_id ผูกแล้วและ publish แล้ว มี index พร้อม query — ชั้นเดียวที่ AI เข้าถึงได้ ไม่เคยเห็นข้อมูลดิบหรือข้อความ OCR', model: 'LLM 1.5–2B (tool-calling) หยิบผ่าน ScheduleQueryService เท่านั้น', artifact: 'session/session_teacher\n(status=published) + v_teacher_schedule' }
+];
+
+const DFD = {
+  entities: [{ v: 'เจ้าหน้าที่ภาควิชา' }, { v: 'นักศึกษา / อาจารย์' }],
+  processes: [
+    { id: 'P1', v: 'Upload + ทางด่วน PDFBox' },
+    { id: 'P2', v: 'OCR Cleansing (Typhoon OCR)' },
+    { id: 'P3', v: 'Structuring / Preprocessing (Parser + TeacherResolver)' },
+    { id: 'P4', v: 'Human Review (ตรวจทาน + จับคู่ครู)' },
+    { id: 'P5', v: 'Publish (Ready Data)' },
+    { id: 'P6', v: 'Chat Tool Query (LLM + ScheduleQueryService)' },
+    { id: 'P7', v: 'Answer Compose' }
+  ],
+  stores: [
+    { id: 'D1', v: 'File volume (ไฟล์ต้นฉบับ)' },
+    { id: 'D2', v: 'ocr_job (คิวงาน)' },
+    { id: 'D3', v: 'teacher / teacher_alias' },
+    { id: 'D4', v: 'session / session_teacher (Ready Data)' },
+    { id: 'D5', v: 'field_correction' }
+  ],
+  edges: [
+    { path: 'เจ้าหน้าที่ → P1', data: 'ไฟล์ตารางดิบ (Raw Data)' },
+    { path: 'P1 → D1', data: 'บันทึกไฟล์ต้นฉบับ' },
+    { path: 'P1 → D2', data: 'สร้าง ocr_job(state=queued)' },
+    { path: 'D2 → P2', data: 'งานที่รอประมวลผล (poll ทีละ 1)' },
+    { path: 'P2 → D2', data: 'อัปเดตสถานะ running / done' },
+    { path: 'P2 → P3', data: 'markdown + bbox + confidence (Cleaned Data)' },
+    { path: 'D3 → P3', data: 'ทะเบียนครู/alias ที่มีอยู่ สำหรับจับคู่' },
+    { path: 'P3 → D4', data: 'INSERT session, session_teacher (บางฟิลด์ยัง unresolved)' },
+    { path: 'P3 → P4', data: 'ส่งช่อง confidence ต่ำ/ชื่อครูกำกวม' },
+    { path: 'เจ้าหน้าที่ → P4', data: 'ตรวจทาน แก้ไข จับคู่ครู' },
+    { path: 'P4 → D4', data: 'UPDATE session ด้วยค่าที่คนแก้' },
+    { path: 'P4 → D5', data: 'บันทึกคู่ (ค่า OCR, ค่าคน) เป็น ground truth' },
+    { path: 'P4 → D3', data: 'ผูก teacher_alias ใหม่ถาวร' },
+    { path: 'P4 → P5', data: 'สั่ง publish เมื่อพร้อม' },
+    { path: 'P5 → D4', data: 'ตั้ง status = published (Ready Data)' },
+    { path: 'นักศึกษา/อาจารย์ → P6', data: 'คำถามภาษาไทย' },
+    { path: 'P6 ↔ D4', data: 'SQL parameterized อ่านเฉพาะข้อมูล published' },
+    { path: 'P6 → P7', data: 'แถวผลลัพธ์จริงจาก SQL' },
+    { path: 'P7 → นักศึกษา/อาจารย์', data: 'คำตอบ + ป้ายความมั่นใจ + ลิงก์รูปต้นฉบับ' }
+  ]
+};
+
+const VIEWS = [
+  { id: 'context', label: '1 · C4 Context', intro: 'ใครใช้ระบบนี้ ระบบคุยกับอะไรข้างนอก และระบบรับผิดชอบอะไร — ยังไม่พูดถึงเทคโนโลยี' },
+  { id: 'workflow', label: '2 · Workflow ข้อมูล (Raw → Ready)', intro: 'ข้อมูลตารางสอนเดินผ่าน 5 ขั้นก่อนถึงมือ AI: Raw Data → Data Cleansing → Cleaned Data → Data Preprocessing → Ready Data — AI หยิบไปตอบได้เฉพาะขั้นสุดท้าย' },
+  { id: 'dataflow', label: '3 · Data Flow Diagram', intro: 'ข้อมูลไหลระหว่างใคร ทำอะไร และเก็บที่ไหน (DFD ระดับ 1) — เส้นทางเดียวกับ workflow แต่มองเป็น entity/process/store' },
+  { id: 'container', label: '4 · System Architecture Diagram', intro: 'กล่องอะไรรันอยู่จริงบ้าง แต่ละกล่องกิน RAM เท่าไร และคุยกันด้วยอะไร · ตัวเลข RAM รวมกันแล้วต้องพอใน 8 GB ซึ่งเป็นข้อจำกัดที่บีบทุกการตัดสินใจในหน้านี้' },
+  { id: 'er', label: '5 · ER Diagram', intro: 'โครงข้อมูล · จุดที่ต้องอ่านให้ละเอียดคือ teacher_alias (แก้ปัญหาชื่อต้นซ้ำ), session_teacher (ครูสอนร่วม) และ field_correction (ที่มาของตัวเลขความแม่น)' },
+  { id: 'upload', label: '6 · Flow: อัปโหลด → OCR → ตรวจทาน', intro: 'เส้นทางของไฟล์ตารางหนึ่งใบตั้งแต่เจ้าหน้าที่เลือกไฟล์ จนกลายเป็นแถวในฐานข้อมูลที่ตอบคำถามได้' },
+  { id: 'chat', label: '7 · Flow: นักศึกษาถาม → ตอบ', intro: 'คำถามหนึ่งคำถามเดินผ่านอะไรบ้าง และเวลาไปหมดที่ไหน — ชั้น LLM คือส่วนที่ช้าที่สุด จึงมีทางด่วนข้าม LLM สำหรับคำถามที่จับ pattern ได้' },
+  { id: 'decisions', label: '8 · การตัดสินใจ + ความเสี่ยง', intro: 'ทุกข้อคือทางแยกที่เลือกแล้วพร้อมราคาที่จ่าย — ส่วนนี้คือสิ่งที่อาจารย์ที่ปรึกษามักถามในห้องสอบ' }
+];
+
+class Component extends DCLogic {
+  state = { view: null };
+
+  renderVals() {
+    const cur = this.state.view || this.props.initialView || 'context';
+    const view = VIEWS.find(v => v.id === cur) || VIEWS[0];
+    const seq = cur === 'chat' ? SEQ_CHAT : SEQ_UPLOAD;
+    const laneChip = 'font-size:11px;padding:3px 9px;border:1px solid var(--color-accent-700);color:var(--color-accent-800);white-space:nowrap';
+
+    return {
+      tabs: VIEWS.map(v => ({
+        key: v.id, label: v.label,
+        onClick: () => this.setState({ view: v.id }),
+        style: 'cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;padding:9px 14px;border:0;border-radius:0;background:' +
+          (v.id === cur ? 'var(--color-accent)' : 'transparent') + ';color:' + (v.id === cur ? 'var(--color-bg)' : 'var(--color-neutral-700)') +
+          ';border-bottom:2px solid ' + (v.id === cur ? 'var(--color-accent-800)' : 'transparent')
+      })),
+      view,
+      isContext: cur === 'context', isContainer: cur === 'container',
+      isWorkflow: cur === 'workflow', isDataflow: cur === 'dataflow',
+      isSeq: cur === 'upload' || cur === 'chat', isEr: cur === 'er', isDecisions: cur === 'decisions',
+      workflow: WORKFLOW.map((w, i) => Object.assign({ key: w.step }, w, {
+        artifact: w.artifact.replace(/\n/g, ' · '),
+        arrowStyle: i < WORKFLOW.length - 1
+          ? 'flex:none;width:26px;text-align:center;font-size:18px;color:var(--color-accent-700)'
+          : 'display:none'
+      })),
+      dfd: {
+        entities: DFD.entities.map((e, i) => Object.assign({ key: i }, e)),
+        processes: DFD.processes.map(p => Object.assign({ key: p.id }, p)),
+        stores: DFD.stores.map(d => Object.assign({ key: d.id }, d)),
+        edges: DFD.edges.map((e, i) => Object.assign({ key: i }, e))
+      },
+      ctx: {
+        actors: CONTEXT.actors.map(a => Object.assign({ key: a.name }, a)),
+        externals: CONTEXT.externals.map(e => Object.assign({ key: e.name }, e)),
+        caps: CONTEXT.caps.map(c => ({ key: c.v, v: c.v }))
+      },
+      layers: LAYERS.map(l => Object.assign({ key: l.title }, l, {
+        boxes: l.boxes.map(b => Object.assign({ key: b.name, style: CARD }, b))
+      })),
+      seq: {
+        lanes: seq.lanes.map(l => ({ key: l, v: l, style: laneChip })),
+        steps: seq.steps.map((s, i) => Object.assign({ key: i, n: i + 1 }, s, {
+          laneStyle: 'font-size:11px;color:var(--color-accent-800);line-height:1.4;text-wrap:pretty',
+          codeStyle: s.code
+            ? "font-family:'IBM Plex Mono',monospace;font-size:10.5px;margin-top:6px;padding:5px 7px;background:var(--color-neutral-200);border-left:2px solid var(--color-accent);overflow-x:auto;white-space:pre-wrap;word-break:break-word"
+            : 'display:none'
+        })),
+        failures: seq.failures.map((f, i) => Object.assign({ key: i }, f))
+      },
+      entities: ENTITIES.map(e => Object.assign({ key: e.name, style: CARD }, e, {
+        fields: e.fields.map(f => Object.assign({ key: f.n }, f))
+      })),
+      relations: RELATIONS.map((r, i) => Object.assign({ key: i }, r)),
+      decisions: DECISIONS.map(d => Object.assign({ key: d.id }, d))
+    };
+  }
+}
+</script>
+</body>
+</html>

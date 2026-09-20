@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/industry-e7ec5e9f-e201-4590-a3ca-0e379e46c52e/styles.css">
+<script src="_ds/industry-e7ec5e9f-e201-4590-a3ca-0e379e46c52e/_ds_bundle.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&display=swap">
+<style>
+body{font-family:"Noto Sans Thai",Barlow,system-ui,sans-serif;margin:0}
+h1,h2,h3,h4,h5,h6{font-family:"Noto Sans Thai",system-ui,sans-serif;font-weight:600}
+a{color:var(--color-accent-700);text-decoration:none}
+a:hover{color:var(--color-accent-800);text-decoration:underline}
+</style>
+</helmet>
+
+<div style="display:flex;flex-direction:column;min-height:100vh;background:var(--color-bg);color:var(--color-text)">
+
+  <div style="display:flex;align-items:center;gap:18px;padding:10px 20px;border-bottom:1px solid var(--color-divider);flex:none">
+    <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-accent-700)">A · SPLIT VIEW</div>
+    <div style="font-size:17px;font-weight:600">ตรวจทานตารางที่สกัดได้</div>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:12px">
+      <div style="font-size:12px;color:var(--color-neutral-700)">ต้องตรวจ <strong style="color:var(--color-accent-800);font-size:15px">{{ flagLeft }}</strong> / {{ flagTotal }} ช่อง</div>
+      <button class="btn btn-secondary" onClick="{{ jumpNext }}">ช่องถัดไปที่ต้องตรวจ</button>
+      <button class="btn btn-primary" onClick="{{ publish }}">ยืนยันและบันทึกเข้าฐานข้อมูล</button>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:0;padding:8px 20px;border-bottom:1px solid var(--color-divider);flex:none;flex-wrap:wrap;row-gap:8px">
+    <div style="display:flex;flex-direction:column;padding-right:18px;margin-right:18px;border-right:1px solid var(--color-divider);white-space:nowrap">
+      <div style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-600)">รหัสกลุ่มเรียน</div>
+      <div style="font-size:14px;font-weight:600">{{ head.groupCode }}</div>
+    </div>
+    <div style="display:flex;flex-direction:column;padding-right:18px;margin-right:18px;border-right:1px solid var(--color-divider);white-space:nowrap">
+      <div style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-600)">ชื่อกลุ่มเรียน</div>
+      <div style="font-size:14px;font-weight:600">{{ head.groupName }}</div>
+    </div>
+    <div style="display:flex;flex-direction:column;padding-right:18px;margin-right:18px;border-right:1px solid var(--color-divider);white-space:nowrap">
+      <div style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-600)">ภาคเรียน</div>
+      <div style="font-size:14px;font-weight:600">{{ head.semester }}</div>
+    </div>
+    <div style="display:flex;flex-direction:column;padding-right:18px;margin-right:18px;border-right:1px solid var(--color-divider);white-space:nowrap">
+      <div style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-600)">สัปดาห์ที่มีผล</div>
+      <div style="font-size:14px;font-weight:600">{{ head.weeks }}</div>
+    </div>
+    <div style="display:flex;flex-direction:column;padding-right:18px;margin-right:18px;border-right:1px solid var(--color-divider);white-space:nowrap">
+      <div style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-600)">ครูที่ปรึกษา</div>
+      <div style="font-size:14px;font-weight:600">{{ head.advisor }}</div>
+    </div>
+    <div style="display:flex;align-items:center;white-space:nowrap">
+      <div style="font-size:11px;color:var(--color-accent-700)">{{ head.dragHint }}</div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-wrap:wrap;align-items:stretch">
+
+    <div style="flex:1 1 360px;min-width:300px;display:flex;flex-direction:column;border-right:1px solid var(--color-divider);background:var(--color-neutral-200)">
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 14px;font-size:11px;color:var(--color-neutral-700);border-bottom:1px solid var(--color-divider);flex-wrap:wrap">
+        <span style="letter-spacing:.1em;text-transform:uppercase">ต้นฉบับ</span>
+        <span style="white-space:nowrap">ตารางเรียน_สทท42_1-2569.jpg · 1080×682</span>
+      </div>
+      <div style="padding:16px;display:flex;align-items:flex-start;justify-content:center">
+        <div style="position:relative;width:100%;max-width:700px;flex:none">
+          <img src="assets/timetable-sample.jpg" alt="ตารางเรียนต้นฉบับ" style="width:100%;display:block;border:1px solid var(--color-divider)">
+          <sc-for list="{{ boxes }}" as="b" hint-placeholder-count="0">
+            <div style="{{ b.style }}"></div>
+          </sc-for>
+          <div style="{{ hlStyle }}"></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="flex:1 1 560px;min-width:320px;padding:14px;overflow-x:auto">
+      <div style="min-width:1000px" ref="{{ gridRef }}">
+
+        <div style="display:flex;font-size:9px;color:var(--color-neutral-700);margin-bottom:3px">
+          <div style="width:64px;flex:none"></div>
+          <sc-for list="{{ periods }}" as="p" hint-placeholder-count="12">
+            <div style="flex:1 1 0;min-width:0;text-align:center;border-left:1px solid var(--color-divider);padding:1px 0;line-height:1.2">{{ p.label }}<div style="color:var(--color-neutral-500)">{{ p.n }}</div></div>
+          </sc-for>
+        </div>
+
+        <sc-for list="{{ rows }}" as="row" hint-placeholder-count="5">
+          <div style="display:flex;margin-bottom:4px;align-items:stretch">
+            <div style="width:64px;flex:none;font-size:12px;font-weight:600;display:flex;align-items:center;padding-right:6px">{{ row.day }}</div>
+            <sc-for list="{{ row.slots }}" as="s" hint-placeholder-count="12">
+              <div draggable="{{ s.drag }}" onClick="{{ s.onClick }}" onDragStart="{{ s.onDragStart }}" onDragEnd="{{ s.onDragEnd }}" onDragOver="{{ s.onDragOver }}" onDrop="{{ s.onDrop }}" style="{{ s.style }}">
+                <div style="{{ s.codeStyle }}">{{ s.code }}</div>
+                <div style="{{ s.nameStyle }}">{{ s.name }}</div>
+                <div style="{{ s.metaStyle }}">{{ s.meta }}</div>
+                <div style="{{ s.tcStyle }}">{{ s.tc }}</div>
+                <div onPointerDown="{{ s.onResize }}" style="{{ s.gripStyle }}"></div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-for>
+
+        <div style="display:flex;gap:14px;margin-top:14px;font-size:11px;color:var(--color-neutral-700);flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:6px"><span style="width:14px;height:14px;background:var(--color-accent-300);border:1px solid var(--color-divider);display:block"></span>&lt; 70% ต้องแก้</div>
+          <div style="display:flex;align-items:center;gap:6px"><span style="width:14px;height:14px;background:var(--color-accent-100);border:1px solid var(--color-divider);display:block"></span>70–85% ควรดู</div>
+          <div style="display:flex;align-items:center;gap:6px"><span style="width:14px;height:14px;background:transparent;border:1px solid var(--color-divider);display:block"></span>&gt; 85% ผ่าน</div>
+          <div style="display:flex;align-items:center;gap:6px"><span style="width:14px;height:14px;background:var(--color-accent);display:block"></span>ยืนยันแล้ว</div>
+          <div style="display:flex;align-items:center;gap:6px"><span style="width:14px;height:14px;border:1px dashed var(--color-accent-700);display:block"></span>ถูกย้าย/ปรับเวลาด้วยมือ</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="blueprint" style="flex:none;margin:18px;padding:14px;min-width:0">
+        <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+        <sc-if value="{{ hasSel }}" hint-placeholder-val="{{ true }}">
+          <div>
+            <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:10px;flex-wrap:wrap">
+              <div style="font-size:16px;font-weight:600">{{ sel.title }}</div>
+              <div style="margin-left:auto;font-size:11px;color:var(--color-neutral-700)">{{ sel.confLabel }}</div>
+            </div>
+
+            <div style="display:flex;align-items:flex-end;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+              <div class="field" style="width:96px">
+                <label>วัน</label>
+                <select class="input" value="{{ sel.day }}" onChange="{{ onDay }}">
+                  <sc-for list="{{ dayOptions }}" as="d" hint-placeholder-count="5">
+                    <option value="{{ d.v }}">{{ d.v }}</option>
+                  </sc-for>
+                </select>
+              </div>
+              <div class="field" style="width:96px">
+                <label>คาบเริ่ม</label>
+                <select class="input" value="{{ sel.p }}" onChange="{{ onPeriod }}">
+                  <sc-for list="{{ periodOptions }}" as="o" hint-placeholder-count="12">
+                    <option value="{{ o.v }}">{{ o.label }}</option>
+                  </sc-for>
+                </select>
+              </div>
+              <div class="field" style="width:150px">
+                <label>จำนวนคาบต่อเนื่อง</label>
+                <div style="display:flex;align-items:center;gap:0">
+                  <button class="btn btn-secondary" onClick="{{ spanDown }}" style="width:34px;height:36px;padding:0">−</button>
+                  <div style="min-width:52px;text-align:center;font-size:14px;font-weight:600">{{ sel.spanLabel }}</div>
+                  <button class="btn btn-secondary" onClick="{{ spanUp }}" style="width:34px;height:36px;padding:0">+</button>
+                </div>
+              </div>
+              <div style="font-size:11px;color:var(--color-neutral-700);padding-bottom:9px">{{ sel.timeLabel }}</div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1.9fr 1fr;gap:10px">
+              <div class="field">
+                <label>รหัสวิชา · {{ sel.codeConf }}</label>
+                <input class="input" value="{{ sel.code }}" onChange="{{ onCode }}">
+              </div>
+              <div class="field">
+                <label>ชื่อวิชา (จากตารางส่วนหัว)</label>
+                <input class="input" value="{{ sel.subject }}" onChange="{{ onSubject }}">
+              </div>
+              <div class="field">
+                <label>ห้อง · {{ sel.roomConf }}</label>
+                <input class="input" value="{{ sel.room }}" onChange="{{ onRoom }}">
+              </div>
+            </div>
+
+            <div style="display:flex;gap:10px;margin-top:10px;align-items:flex-end;flex-wrap:wrap;row-gap:8px">
+              <div class="field" style="width:58px;flex:none"><label>ท</label><input class="input" value="{{ sel.ct }}" onChange="{{ onCt }}"></div>
+              <div class="field" style="width:58px;flex:none"><label>ป</label><input class="input" value="{{ sel.cp }}" onChange="{{ onCp }}"></div>
+              <div class="field" style="width:58px;flex:none"><label>น</label><input class="input" value="{{ sel.cn }}" onChange="{{ onCn }}"></div>
+              <div class="field" style="width:58px;flex:none"><label>ช</label><input class="input" value="{{ sel.cch }}" onChange="{{ onCch }}"></div>
+              <div class="field" style="width:132px;flex:none">
+                <label>ประเภทคาบนี้</label>
+                <div class="seg">
+                  <label class="seg-opt"><input type="radio" name="ptype" checked="{{ sel.isTheory }}" onChange="{{ setTheory }}"><span>ทฤษฎี</span></label>
+                  <label class="seg-opt"><input type="radio" name="ptype" checked="{{ sel.isPractice }}" onChange="{{ setPractice }}"><span>ปฏิบัติ</span></label>
+                </div>
+              </div>
+              <div style="font-size:11px;color:var(--color-neutral-700);padding-bottom:9px;flex:1 1 220px;min-width:0">ท=ทฤษฎี ป=ปฏิบัติ น=หน่วยกิต ช=ชั่วโมง · {{ sel.creditNote }}</div>
+            </div>
+
+            <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--color-divider)">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+                <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent-700)">ครูผู้สอนในคาบนี้ ({{ sel.teacherCount }} คน)</div>
+                <button class="btn btn-ghost" onClick="{{ addCoTeacher }}">+ เพิ่มครูสอนร่วม</button>
+              </div>
+              <sc-for list="{{ sel.teachers }}" as="t" hint-placeholder-count="1">
+                <div style="display:flex;gap:8px;align-items:flex-start;padding:8px 0;border-top:1px dotted var(--color-divider)">
+                  <div style="width:22px;flex:none;font-size:12px;color:var(--color-neutral-600);padding-top:8px">{{ t.n }}</div>
+                  <div class="field" style="width:150px;flex:none">
+                    <label>OCR อ่านได้ · {{ t.conf }}</label>
+                    <input class="input" value="{{ t.name }}" onChange="{{ t.onChange }}">
+                  </div>
+                  <div style="flex:1;min-width:0">
+                    <div style="font-size:12px;color:var(--color-neutral-600);margin-bottom:5px">จับคู่ทะเบียนครู</div>
+                    <div style="display:flex;gap:6px;flex-wrap:wrap">
+                      <sc-for list="{{ t.candidates }}" as="c" hint-placeholder-count="1">
+                        <button onClick="{{ c.pick }}" style="{{ c.style }}">{{ c.label }}</button>
+                      </sc-for>
+                      <button class="btn btn-ghost" onClick="{{ t.addNew }}">+ เพิ่มเข้าทะเบียน</button>
+                    </div>
+                    <div style="font-size:11px;color:var(--color-neutral-700);margin-top:6px">{{ t.note }}</div>
+                  </div>
+                  <button class="btn btn-ghost" onClick="{{ t.remove }}" style="margin-top:22px">ลบ</button>
+                </div>
+              </sc-for>
+            </div>
+
+            <div style="display:flex;gap:8px;margin-top:14px">
+              <button class="btn btn-primary" onClick="{{ confirmSel }}">ยืนยันช่องนี้</button>
+              <button class="btn btn-secondary" onClick="{{ jumpNext }}">ข้ามไปช่องถัดไป</button>
+              <button class="btn btn-ghost" onClick="{{ resetSel }}">คืนค่าเดิมจาก OCR</button>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ noSel }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:13px;color:var(--color-neutral-700);padding:8px 0">เลือกการ์ดวิชาในตารางด้านบนเพื่อแก้ไข</div>
+        </sc-if>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1460,&quot;height&quot;:920},&quot;semester&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;1/2569&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;หัวตาราง (จากไฟล์)&quot;},&quot;groupCode&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;693190102&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;หัวตาราง (จากไฟล์)&quot;},&quot;groupName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;สทท.4/2&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;หัวตาราง (จากไฟล์)&quot;},&quot;advisor&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;นางสายชล สุขนึ่ม&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;หัวตาราง (จากไฟล์)&quot;},&quot;weekFrom&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:4,&quot;min&quot;:1,&quot;max&quot;:24,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;หัวตาราง (จากไฟล์)&quot;},&quot;weekTo&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:18,&quot;min&quot;:1,&quot;max&quot;:24,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;หัวตาราง (จากไฟล์)&quot;},&quot;includeWeekend&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;โครงตาราง&quot;},&quot;periodCount&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:12,&quot;min&quot;:8,&quot;max&quot;:16,&quot;step&quot;:1,&quot;unit&quot;:&quot; คาบ&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;โครงตาราง&quot;},&quot;dayStartHour&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:8,&quot;min&quot;:6,&quot;max&quot;:10,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;โครงตาราง&quot;},&quot;density&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;แน่น&quot;,&quot;สบาย&quot;],&quot;default&quot;:&quot;สบาย&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;โครงตาราง&quot;},&quot;dragEnabled&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;การ์ดวิชา&quot;},&quot;showSubjectName&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;การ์ดวิชา&quot;},&quot;showCredits&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;การ์ดวิชา&quot;},&quot;showRoom&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;การ์ดวิชา&quot;}}">
+const RAW = [
+  ['จันทร์',1,1,'ท','31901-2007','COM602',['ไมตรี'],[.99],.99,.98],
+  ['จันทร์',2,1,'ป','31901-2007','COM602',['ไมตรี'],[.91],.98,.97],
+  ['จันทร์',3,1,'ป','31901-2007','COM602',['ไมตรี'],[.90],.97,.96],
+  ['จันทร์',5,2,'ป','31901-2007','COM602',['ไมตรี'],[.72],.94,.90],
+  ['จันทร์',7,2,'ป','31901-2001','COM603',['ปฐพนพัทธ์'],[.58],.96,.93],
+  ['อังคาร',1,1,'ท','31901-2004','COM603',['ปฐพนพัทธ์'],[.61],.97,.95],
+  ['อังคาร',2,1,'ป','31901-2004','COM603',['ปฐพนพัทธ์'],[.63],.96,.95],
+  ['อังคาร',5,2,'ป','31901-2004','COM603',['ปฐพนพัทธ์'],[.60],.93,.92],
+  ['อังคาร',7,1,'ท','31901-2001','COM603',['ปฐพนพัทธ์'],[.59],.95,.94],
+  ['อังคาร',8,2,'ป','31900-1002','COM404',['ไมตรี'],[.88],.83,.91],
+  ['พุธ',1,1,'ท','31900-1003','COM404',['ลจี'],[.44],.95,.94],
+  ['พุธ',2,1,'ป','31900-1003','COM404',['ลจี'],[.46],.94,.93],
+  ['พุธ',5,2,'ป','31900-1003','COM404',['ลจี'],[.42],.92,.90],
+  ['พุธ',7,2,'ป','30000-2001','สนาม',['สายชล','ธัญญาเรศ'],[.66,.58],.92,.71],
+  ['พฤหัสบดี',1,1,'ท','30000-1101','621',['สุริย์พร'],[.70],.96,.88],
+  ['พฤหัสบดี',2,1,'ป','30000-1101','621',['สุริย์พร'],[.71],.95,.87],
+  ['พฤหัสบดี',5,1,'ท','31900-1002','COM602',['ไมตรี'],[.90],.94,.95],
+  ['ศุกร์',1,1,'ท','30000-1201','11502',['ธัญญาเรศ'],[.85],.94,.62],
+  ['ศุกร์',2,1,'ป','30000-1201','11502',['ธัญญาเรศ'],[.86],.93,.64],
+  ['ศุกร์',6,2,'ท','30000-1302','11602',['พงศกร'],[.79],.93,.67],
+  ['ศุกร์',8,2,'ป','30000-1302','11602',['พงศกร'],[.80],.92,.66]
+];
+const SUBJECTS = {
+  '31901-2007':['เทคโนโลยีการจัดการฐานข้อมูล',1,4,3,5],
+  '31901-2001':['การออกแบบส่วนติดต่อผู้ใช้ขั้นสูง',1,2,2,3],
+  '31901-2004':['การพัฒนาซอฟต์แวร์ด้วยเทคโนโลยี Front-End',1,4,3,5],
+  '31900-1002':['การจัดการข้อมูลขนาดใหญ่เบื้องต้น',1,2,2,2],
+  '31900-1003':['การสร้างสื่อดิจิทัล',1,4,3,2],
+  '30000-2001':['กิจกรรมเสริมสร้างสุขจิต จิตอาสา',0,2,0,2],
+  '30000-1101':['ทักษะภาษาไทยเพื่อการสื่อสารในงานอาชีพ',1,2,2,2],
+  '30000-1201':['ภาษาอังกฤษสำหรับงานอาชีพ',1,2,2,2],
+  '30000-1302':['วิทยาศาสตร์งานอาชีพไฟฟ้าอิเล็กทรอนิกส์และการสื่อสาร',2,2,3,3]
+};
+const REGISTRY = {
+  'ไมตรี':['นายไมตรี วงศ์อนันต์ · T-014','นายไมตรี สุขเจริญ · T-041'],
+  'ปฐพนพัทธ์':['นายปฐพนพัทธ์ ศรีบุญเรือง · T-022'],
+  'ลจี':[],
+  'สุริย์พร':['นางสุริย์พร ทองใบ · T-008'],
+  'ธัญญาเรศ':['นางสาวธัญญาเรศ พันธุ์ดี · T-030'],
+  'สายชล':['นางสายชล สุขนึ่ม · T-003'],
+  'พงศกร':['นายพงศกร อินทร์แก้ว · T-017']
+};
+const WEEKDAYS = ['จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์'];
+const WEEKEND = ['เสาร์','อาทิตย์'];
+const ROWGEO = { 'จันทร์':[42.5,8.2], 'อังคาร':[51.2,8.6], 'พุธ':[60.4,8.6], 'พฤหัสบดี':[69.6,9.2], 'ศุกร์':[79.4,9.2] };
+const COL0 = 15.6, COLW = 6.72, LOW = 0.7, MID = 0.85;
+
+class Component extends DCLogic {
+  state = { selId: 'c4', edits: {}, moves: {}, spans: {}, confirmed: {}, mapped: {}, dragId: null, extra: {}, removed: {} };
+
+  gridRef = el => { this.gridEl = el; };
+
+  cells() {
+    return RAW.map((r, i) => {
+      const id = 'c' + i;
+      const e = this.state.edits[id] || {};
+      const mv = this.state.moves[id];
+      const sub = SUBJECTS[r[4]] || ['', 0, 0, 0, 0];
+      const gone = this.state.removed[id] || {};
+      const base = r[6].map((n, k) => ({ name: n, conf: r[7][k], slot: k })).filter(t => !gone[t.slot]);
+      const added = (this.state.extra[id] || []).map((n, k) => ({ name: n, conf: null, slot: 100 + k }));
+      const teachers = base.concat(added).map(t => Object.assign({}, t, { name: e['t' + t.slot] !== undefined ? e['t' + t.slot] : t.name }));
+      return {
+        id, i,
+        day: mv ? mv.day : r[0],
+        p: mv ? mv.p : r[1],
+        span: this.state.spans[id] !== undefined ? this.state.spans[id] : r[2],
+        type: e.type !== undefined ? e.type : r[3],
+        code: e.code !== undefined ? e.code : r[4],
+        room: e.room !== undefined ? e.room : r[5],
+        subject: e.subject !== undefined ? e.subject : sub[0],
+        ct: e.ct !== undefined ? e.ct : sub[1],
+        cp: e.cp !== undefined ? e.cp : sub[2],
+        cn: e.cn !== undefined ? e.cn : sub[3],
+        cch: e.cch !== undefined ? e.cch : sub[4],
+        teachers,
+        cf: { code: r[8], room: r[9], tc: Math.min.apply(null, r[7]) },
+        moved: !!mv || this.state.spans[id] !== undefined,
+        origin: { day: r[0], p: r[1], span: r[2] }
+      };
+    });
+  }
+  worst(c) { return Math.min(c.cf.code, c.cf.room, c.cf.tc); }
+  needs(c) { return !this.state.confirmed[c.id] && this.worst(c) < MID; }
+  set(id, field, v) { this.setState(s => ({ edits: Object.assign({}, s.edits, { [id]: Object.assign({}, s.edits[id], { [field]: v }) }) })); }
+
+  place(id, day, p) {
+    const pc = this.props.periodCount || 12;
+    const c = this.cells().find(x => x.id === id);
+    const np = Math.max(1, Math.min(pc - c.span + 1, p));
+    this.setState(s => ({ moves: Object.assign({}, s.moves, { [id]: { day, p: np } }) }));
+  }
+
+  renderVals() {
+    const P = this.props;
+    const pc = Math.max(8, Math.min(16, P.periodCount || 12));
+    const start = P.dayStartHour || 8;
+    const roomy = (P.density || 'สบาย') !== 'แน่น';
+    const cardH = roomy ? 62 : 44;
+    const days = (P.includeWeekend ? WEEKDAYS.concat(WEEKEND) : WEEKDAYS);
+
+    const cells = this.cells();
+    const byId = {};
+    cells.forEach(c => { byId[c.id] = c; });
+    const sel = byId[this.state.selId] || cells.find(c => this.needs(c)) || cells[0];
+
+    const periods = [];
+    for (let p = 1; p <= pc; p++) periods.push({ n: p, label: (start + p - 1) + ':00' });
+
+    const tint = c => {
+      if (this.state.confirmed[c.id]) return 'var(--color-accent)';
+      const w = this.worst(c);
+      if (w < LOW) return 'var(--color-accent-300)';
+      if (w < MID) return 'var(--color-accent-100)';
+      return 'var(--color-neutral-100)';
+    };
+    const line = (c, conf, size, weight) => {
+      const on = this.state.confirmed[c.id];
+      const col = on ? 'var(--color-bg)' : (conf !== null && conf < LOW ? 'var(--color-accent-900)' : 'var(--color-text)');
+      const und = (!on && conf !== null && conf < MID) ? 'border-bottom:1px dashed var(--color-accent-700);' : '';
+      return 'font-size:' + size + 'px;font-weight:' + weight + ';line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:' + col + ';' + und;
+    };
+
+    const rows = days.map(day => {
+      const dayCells = cells.filter(c => c.day === day).sort((a, b) => a.p - b.p);
+      const slots = [];
+      let p = 1;
+      while (p <= pc) {
+        const c = dayCells.find(x => x.p === p);
+        if (c) {
+          const isSel = c.id === sel.id;
+          const dragging = this.state.dragId === c.id;
+          slots.push({
+            key: c.id, drag: !!P.dragEnabled,
+            code: c.type + '.' + c.code,
+            name: P.showSubjectName === false ? '' : c.subject,
+            meta: (P.showRoom === false ? '' : c.room) + (P.showCredits === false ? '' : '  ท' + c.ct + ' ป' + c.cp + ' น' + c.cn),
+            tc: c.teachers.map(t => t.name).join(' + '),
+            onClick: () => this.setState({ selId: c.id }),
+            onDragStart: e => { e.dataTransfer.effectAllowed = 'move'; this.setState({ dragId: c.id, selId: c.id }); },
+            onDragEnd: () => this.setState({ dragId: null }),
+            onDragOver: e => { if (this.state.dragId && this.state.dragId !== c.id) e.preventDefault(); },
+            onDrop: e => {
+              e.preventDefault();
+              const from = this.state.dragId;
+              if (!from || from === c.id) return;
+              const a = byId[from];
+              this.place(from, c.day, c.p);
+              this.place(c.id, a.day, a.p);
+              this.setState({ dragId: null });
+            },
+            onResize: e => {
+              e.stopPropagation();
+              const startX = e.clientX, startSpan = c.span;
+              const track = this.gridEl ? this.gridEl.getBoundingClientRect().width - 64 : 936;
+              const per = track / pc;
+              const move = ev => {
+                const ns = Math.max(1, Math.min(pc - c.p + 1, startSpan + Math.round((ev.clientX - startX) / per)));
+                this.setState(s => (s.spans[c.id] === ns ? null : { spans: Object.assign({}, s.spans, { [c.id]: ns }) }));
+              };
+              const up = () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); };
+              window.addEventListener('pointermove', move); window.addEventListener('pointerup', up);
+            },
+            style: 'position:relative;flex:' + c.span + ' 1 0;min-width:0;cursor:' + (P.dragEnabled ? 'grab' : 'pointer') +
+              ';padding:4px 6px;margin-right:3px;overflow:hidden;background:' + tint(c) +
+              ';opacity:' + (dragging ? '.4' : '1') +
+              ';border:' + (isSel ? '2px solid var(--color-accent-800)' : (c.moved ? '1px dashed var(--color-accent-700)' : '1px solid var(--color-divider)')) +
+              ';box-shadow:' + (isSel ? '0 0 0 2px var(--color-accent-200)' : 'none') + ';min-height:' + cardH + 'px',
+            codeStyle: line(c, c.cf.code, 11, 600),
+            nameStyle: roomy && P.showSubjectName !== false ? line(c, null, 9, 400) : 'display:none',
+            metaStyle: line(c, c.cf.room, 10, 400),
+            tcStyle: line(c, c.cf.tc, 10, 500),
+            gripStyle: 'position:absolute;top:0;right:0;width:9px;height:100%;cursor:col-resize;touch-action:none;background:' +
+              (isSel ? 'var(--color-accent-800)' : 'transparent')
+          });
+          p += c.span;
+        } else {
+          const dropAt = p;
+          slots.push({
+            key: day + dropAt, drag: false, code: '', name: '', meta: '', tc: '',
+            onClick: null, onDragStart: null, onDragEnd: null, onResize: null,
+            onDragOver: e => { if (this.state.dragId) e.preventDefault(); },
+            onDrop: e => { e.preventDefault(); if (this.state.dragId) { this.place(this.state.dragId, day, dropAt); this.setState({ dragId: null }); } },
+            style: 'position:relative;flex:1 1 0;min-width:0;margin-right:3px;min-height:' + cardH + 'px;border:1px solid ' +
+              (this.state.dragId ? 'var(--color-accent-400)' : 'color-mix(in srgb, var(--color-text) 7%, transparent)') +
+              ';background:' + (this.state.dragId ? 'var(--color-accent-100)' : 'transparent'),
+            codeStyle: 'display:none', nameStyle: 'display:none', metaStyle: 'display:none', tcStyle: 'display:none', gripStyle: 'display:none'
+          });
+          p += 1;
+        }
+      }
+      return { day, slots };
+    });
+
+    const geo = c => {
+      const g = ROWGEO[c.origin.day] || [42.5, 8.2];
+      return { left: COL0 + (c.origin.p - 1) * COLW, top: g[0], width: COLW * c.origin.span, height: g[1] };
+    };
+    const boxes = cells.filter(c => this.needs(c) && c.id !== sel.id).map(c => {
+      const g = geo(c);
+      return { key: c.id, style: 'position:absolute;pointer-events:none;left:' + g.left + '%;top:' + g.top + '%;width:' + g.width + '%;height:' + g.height + '%;border:1px solid var(--color-accent-700);background:color-mix(in srgb, var(--color-accent) 12%, transparent)' };
+    });
+    const sg = geo(sel);
+    const hlStyle = {
+      position: 'absolute', pointerEvents: 'none',
+      left: sg.left + '%', top: sg.top + '%', width: sg.width + '%', height: sg.height + '%',
+      border: '2px solid var(--color-accent-800)',
+      boxShadow: '0 0 0 3px color-mix(in srgb, var(--color-accent) 35%, transparent), 0 0 0 9999px color-mix(in srgb, var(--color-neutral-900) 22%, transparent)'
+    };
+
+    const pct = v => (v === null || v === undefined) ? 'เพิ่มด้วยมือ' : Math.round(v * 100) + '%';
+    const chip = on => 'cursor:pointer;font-family:inherit;font-size:12px;padding:5px 10px;border-radius:0;border:1px solid ' +
+      (on ? 'var(--color-accent)' : 'var(--color-divider)') + ';background:' + (on ? 'var(--color-accent)' : 'transparent') +
+      ';color:' + (on ? 'var(--color-bg)' : 'var(--color-text)');
+
+    const teachers = sel.teachers.map((t, k) => {
+      const cand = REGISTRY[t.name] || [];
+      const key = sel.id + ':' + t.slot;
+      const picked = this.state.mapped[key];
+      return {
+        key, n: (k + 1) + '.', name: t.name, conf: pct(t.conf),
+        onChange: e => this.set(sel.id, 't' + t.slot, e.target.value),
+        candidates: cand.map(label => ({
+          key: label, label, style: chip(picked === label),
+          pick: () => this.setState(s => ({ mapped: Object.assign({}, s.mapped, { [key]: label }) }))
+        })),
+        addNew: () => {},
+        remove: () => this.setState(s => ({ removed: Object.assign({}, s.removed, { [sel.id]: Object.assign({}, s.removed[sel.id], { [t.slot]: true }) }) })),
+        note: cand.length === 0
+          ? '"' + t.name + '" ไม่พบในทะเบียน — ถ้าไม่เพิ่ม ตารางของครูคนนี้จะหายไปทั้งคน'
+          : cand.length > 1
+            ? 'ชื่อต้นซ้ำ ' + cand.length + ' คน — ระบบเดาไม่ได้ ต้องให้คนเลือก แล้วจะจำไว้ตลอด'
+            : 'ชื่อต้นตรงกับครูคนเดียวในทะเบียน — จับคู่อัตโนมัติ'
+      };
+    });
+
+    const flagged = cells.filter(c => this.needs(c));
+    const jumpNext = () => { const n = flagged.find(c => c.id !== sel.id) || flagged[0]; if (n) this.setState({ selId: n.id }); };
+    const setSpan = d => this.setState(s => {
+      const cur = s.spans[sel.id] !== undefined ? s.spans[sel.id] : sel.span;
+      const ns = Math.max(1, Math.min(pc - sel.p + 1, cur + d));
+      return { spans: Object.assign({}, s.spans, { [sel.id]: ns }) };
+    });
+    const hoursNeeded = Number(sel.ct) + Number(sel.cp);
+
+    return {
+      head: {
+        groupCode: P.groupCode || '693190102',
+        groupName: P.groupName || 'สทท.4/2',
+        semester: P.semester || '1/2569',
+        weeks: (P.weekFrom || 4) + '–' + (P.weekTo || 18) + ' (' + ((P.weekTo || 18) - (P.weekFrom || 4) + 1) + ' สัปดาห์)',
+        advisor: P.advisor || 'นางสายชล สุขนึ่ม',
+        dragHint: P.dragEnabled ? 'ลากการ์ดวิชาเพื่อย้ายวัน/คาบ · ลากขอบขวาเพื่อขยายเวลา' : 'ปิดการลากอยู่ — แก้วัน/คาบได้ในแผงด้านล่าง'
+      },
+      gridRef: this.gridRef,
+      periods, rows, boxes, hlStyle,
+      flagLeft: flagged.length, flagTotal: cells.filter(c => this.worst(c) < MID).length,
+      hasSel: !!sel, noSel: !sel,
+      dayOptions: days.map(d => ({ key: d, v: d })),
+      periodOptions: periods.map(p => ({ key: p.n, v: p.n, label: 'คาบ ' + p.n + ' · ' + p.label })),
+      sel: {
+        title: sel.day + ' คาบ ' + sel.p + (sel.span > 1 ? '–' + (sel.p + sel.span - 1) : ''),
+        timeLabel: (start + sel.p - 1) + ':00–' + (start + sel.p - 1 + sel.span) + ':00' + (sel.moved ? ' · แก้ด้วยมือ (ต่างจากต้นฉบับ)' : ''),
+        confLabel: 'ความมั่นใจต่ำสุดในการ์ดนี้ ' + pct(this.worst(sel)),
+        day: sel.day, p: sel.p, spanLabel: sel.span + ' คาบ',
+        code: sel.type + '.' + sel.code, subject: sel.subject, room: sel.room,
+        ct: sel.ct, cp: sel.cp, cn: sel.cn, cch: sel.cch,
+        isTheory: sel.type === 'ท', isPractice: sel.type === 'ป',
+        creditNote: 'วิชานี้ต้องเรียน ' + hoursNeeded + ' ชม./สัปดาห์ ตามหน่วยกิต',
+        codeConf: pct(sel.cf.code), roomConf: pct(sel.cf.room),
+        teachers, teacherCount: sel.teachers.length
+      },
+      onDay: e => this.place(sel.id, e.target.value, sel.p),
+      onPeriod: e => this.place(sel.id, sel.day, Number(e.target.value)),
+      spanUp: () => setSpan(1), spanDown: () => setSpan(-1),
+      onCode: e => this.set(sel.id, 'code', e.target.value.replace(/^[ทป]\./, '')),
+      onSubject: e => this.set(sel.id, 'subject', e.target.value),
+      onRoom: e => this.set(sel.id, 'room', e.target.value),
+      onCt: e => this.set(sel.id, 'ct', e.target.value),
+      onCp: e => this.set(sel.id, 'cp', e.target.value),
+      onCn: e => this.set(sel.id, 'cn', e.target.value),
+      onCch: e => this.set(sel.id, 'cch', e.target.value),
+      setTheory: () => this.set(sel.id, 'type', 'ท'),
+      setPractice: () => this.set(sel.id, 'type', 'ป'),
+      addCoTeacher: () => this.setState(s => ({ extra: Object.assign({}, s.extra, { [sel.id]: (s.extra[sel.id] || []).concat(['']) }) })),
+      confirmSel: () => { this.setState(s => ({ confirmed: Object.assign({}, s.confirmed, { [sel.id]: true }) })); setTimeout(jumpNext, 0); },
+      resetSel: () => this.setState(s => {
+        const e = Object.assign({}, s.edits), m = Object.assign({}, s.moves), sp = Object.assign({}, s.spans);
+        const ex = Object.assign({}, s.extra), rm = Object.assign({}, s.removed);
+        delete e[sel.id]; delete m[sel.id]; delete sp[sel.id]; delete ex[sel.id]; delete rm[sel.id];
+        return { edits: e, moves: m, spans: sp, extra: ex, removed: rm };
+      }),
+      jumpNext, publish: () => {}
+    };
+  }
+}
+</script>
+</body>
+</html>

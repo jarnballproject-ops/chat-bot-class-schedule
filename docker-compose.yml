@@ -1,0 +1,54 @@
+# RAM รวมต้องพอใน 8 GB ตาม NFR-03 ตอนนี้ใช้จริง ~1.5 GB
+# เหลือที่ไว้ให้ ocr-worker กับ ollama ซึ่งห้ามรันพร้อมกัน
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: timetable
+      POSTGRES_USER: timetable
+      POSTGRES_PASSWORD: timetable
+    ports:
+      - "5433:5432"        # host ใช้ 5433 เพราะ 5432 ถูกโปรเจกต์อื่นจองอยู่ ในเน็ตเวิร์ก compose ยังเป็น 5432
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U timetable -d timetable"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/timetable
+      SPRING_DATASOURCE_USERNAME: timetable
+      SPRING_DATASOURCE_PASSWORD: timetable
+      JAVA_TOOL_OPTIONS: -Xmx512m
+    ports:
+      - "8081:8080"        # host ใช้ 8081 เพราะ 8080 ถูกโปรเจกต์อื่นจองอยู่
+    volumes:
+      - uploads:/data/uploads
+    mem_limit: 1g
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+
+  # ยังไม่เปิดใน slice นี้ — เพิ่มตอนทำสาย OCR และสายแชท
+  # ocr-worker: Typhoon OCR 2B int8 (FastAPI) ~3 GB · รันทีละงาน
+  #   mem_limit: 3g
+  # ollama: Qwen2.5-1.5B + LoRA merged เป็น GGUF q4 ~2.5 GB
+  #   mem_limit: 3g
+  # ห้ามรัน 2 ตัวนี้พร้อมกันบนเครื่อง 8 GB (NFR-03)
+
+volumes:
+  pgdata:
+  uploads:

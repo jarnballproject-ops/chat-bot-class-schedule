@@ -1,0 +1,12 @@
+spring:
+  flyway:
+    # db/seed มีแต่ข้อมูลตัวอย่างของ อ.สจี โปรไฟล์ prod ไม่สแกนโฟลเดอร์นี้
+    locations: classpath:db/migration,classpath:db/seed
+
+app:
+  auth:
+    # token ปลอมสำหรับ dev และการสาธิตเท่านั้น ห้ามใช้จริง
+    tokens:
+      "[dev-staff]": staff
+      "[dev-student]": student
+      "[dev-teacher]": teacher

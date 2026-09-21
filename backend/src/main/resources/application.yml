@@ -1,0 +1,32 @@
+spring:
+  application:
+    name: timetable-api
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/timetable}
+    username: ${SPRING_DATASOURCE_USERNAME:timetable}
+    password: ${SPRING_DATASOURCE_PASSWORD:timetable}
+  jpa:
+    hibernate:
+      ddl-auto: none          # Flyway เป็นเจ้าของ schema ทั้งหมด Hibernate ห้ามแตะ
+    open-in-view: false
+  flyway:
+    locations: classpath:db/migration   # dev override เพิ่ม db/seed เข้ามา
+  mvc:
+    problemdetails:
+      enabled: true           # ให้ error ของ Spring เองออกเป็น application/problem+json (RFC 9457)
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+
+app:
+  auth:
+    # fail closed โดยเจตนา: ไม่มี token = ทุก request โดน 401
+    # โปรไฟล์ prod ต้องต่อ OIDC จริงก่อนถึงจะใช้งานได้
+    tokens: {}

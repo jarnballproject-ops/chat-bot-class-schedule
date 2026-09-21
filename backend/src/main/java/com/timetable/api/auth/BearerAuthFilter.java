@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.stereotype.Component;
+import org.springframework.web.cors.CorsUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -40,7 +41,9 @@ public class BearerAuthFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        return request.getRequestURI().startsWith("/actuator/");
+        // preflight ของ CORS ไม่มี Authorization header ตามสเปกของเบราว์เซอร์ ถ้าดักตรงนี้จะตอบ 401
+        // ตั้งแต่ก่อนถึงชั้น CORS ของ Spring ปล่อยผ่านได้เพราะ request จริงยังต้องผ่าน filter อยู่ดี
+        return CorsUtils.isPreFlightRequest(request) || request.getRequestURI().startsWith("/actuator/");
     }
 
     @Override

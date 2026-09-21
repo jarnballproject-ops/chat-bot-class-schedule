@@ -32,6 +32,13 @@ public class Teacher {
 
     private String department;
 
+    /** สามฟิลด์นี้มาจากหัวตารางในรูปต้นฉบับ (วิทยาลัย วุฒิการศึกษา ตำแหน่งหน้าที่พิเศษ) */
+    private String college;
+
+    private String education;
+
+    private String specialDuty;
+
     private OffsetDateTime createdAt;
 
     private OffsetDateTime updatedAt;
@@ -90,6 +97,30 @@ public class Teacher {
 
     public void setDepartment(String department) {
         this.department = department;
+    }
+
+    public String getCollege() {
+        return college;
+    }
+
+    public void setCollege(String college) {
+        this.college = college;
+    }
+
+    public String getEducation() {
+        return education;
+    }
+
+    public void setEducation(String education) {
+        this.education = education;
+    }
+
+    public String getSpecialDuty() {
+        return specialDuty;
+    }
+
+    public void setSpecialDuty(String specialDuty) {
+        this.specialDuty = specialDuty;
     }
 
     public OffsetDateTime getCreatedAt() {

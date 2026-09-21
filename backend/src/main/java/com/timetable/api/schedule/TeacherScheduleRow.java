@@ -30,4 +30,12 @@ public interface TeacherScheduleRow {
     String getGroupCode();
 
     Integer getHeadcount();
+
+    /** ช่วงสัปดาห์ของตารางใบที่คาบนี้มา ครูคนเดียวมีหลายใบ ใบละช่วง คาบจึงซ้อนเวลากันได้ */
+    Short getWeekFrom();
+
+    Short getWeekTo();
+
+    /** รูปต้นฉบับของคาบนี้ ใช้จับคู่คาบกับใบตารางที่แสดงอยู่ด้านล่าง */
+    String getSourceImage();
 }

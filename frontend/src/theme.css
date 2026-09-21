@@ -1,0 +1,233 @@
+/* ============================================================
+   ธีมหลักของระบบ — ถอดจากต้นแบบ docs/OCR Review - Split.dc (1).html
+   ไฟล์นี้คือ design system ห้ามใส่สไตล์เฉพาะหน้าใดหน้าหนึ่งลงที่นี่
+   วิธีใช้และกติกาอยู่ใน docs/style-guide.md
+   ============================================================ */
+
+:root {
+  /* พื้นผิว */
+  --color-bg: #eff0f2;
+  --color-surface: #ffffff;
+  --color-text: #1c1e21;
+  --color-divider: #d6d8dc;
+
+  /* เทา ใช้กับข้อความรองและป้ายกำกับ */
+  --color-neutral-100: #f4f5f7;
+  --color-neutral-200: #e7e9ed;
+  --color-neutral-500: #9aa0a8;   /* เส้นและไอคอนเท่านั้น ความต่างสีไม่พอสำหรับตัวอักษร */
+  --color-neutral-600: #656c75;   /* เข้มขึ้นจาก #7a818a ให้ป้ายกำกับ 12px ผ่าน WCAG AA 4.5:1 */
+  --color-neutral-700: #5a616b;
+  --color-neutral-900: #2a2e34;
+
+  /* น้ำเงินเหล็ก คือสีเดียวของระบบ ใช้ชี้สิ่งที่กดได้และสิ่งที่ต้องสนใจ */
+  --color-accent: #4e79a7;
+  --color-accent-100: #edf2f8;
+  --color-accent-200: #dce6f1;
+  --color-accent-300: #c3d5e8;
+  --color-accent-400: #9fbbda;
+  --color-accent-700: #3e6592;
+  --color-accent-800: #31537a;
+  --color-accent-900: #26415f;
+
+  /* แดงอิฐ ใช้กับข้อผิดพลาดและการกระทำที่ย้อนกลับไม่ได้เท่านั้น ห้ามใช้ตกแต่ง
+     เข้มพอให้ตัวอักษร 12px บนพื้นขาวผ่าน WCAG AA (7.1:1) */
+  --color-danger: #a3231f;
+  --color-danger-700: #85201c;
+
+  --font: "Noto Sans Thai", Barlow, system-ui, sans-serif;
+  --radius: 3px;
+
+  /* จังหวะการเปลี่ยนสถานะ สั้นพอให้รู้สึกว่าตอบสนองทันที ไม่ใช่แอนิเมชันตกแต่ง
+     ปิดอัตโนมัติเมื่อผู้ใช้ตั้ง prefers-reduced-motion (ดูท้ายไฟล์) */
+  --ease: 120ms ease-out;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root { height: 100%; }
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  /* ตัวเลขทุกตัวกว้างเท่ากัน เวลา 08:00 กับ 11:00 จึงตรงคอลัมน์กันทั้งตาราง */
+  font-variant-numeric: tabular-nums;
+}
+
+/* แถบเลื่อนบางสีเดียวกับเส้นแบ่ง ไม่ให้แถบเลื่อนหนา ๆ ของระบบมาตัดจังหวะหน้าจอที่แน่นอยู่แล้ว */
+* { scrollbar-width: thin; scrollbar-color: var(--color-neutral-500) transparent; }
+
+::selection { background: var(--color-accent-200); }
+
+h1, h2, h3, h4 { font-family: var(--font); font-weight: 600; margin: 0; }
+
+:focus-visible { outline: 2px solid var(--color-accent-700); outline-offset: 1px; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+
+/* ---------- eyebrow ----------
+   ป้ายนำหน้าหัวเรื่อง บอกว่าหน้านี้คือขั้นไหนของงาน ใช้ได้หน้าละหนึ่งอันเท่านั้น */
+.eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-accent-700);
+  white-space: nowrap;
+}
+
+/* ---------- ปุ่ม ----------
+   primary หน้าละไม่เกินหนึ่งปุ่ม คือการกระทำที่จบงานของหน้านั้น
+   secondary คือทางเลือกรอง ghost คือคำสั่งที่ย้อนกลับได้หรือไม่สำคัญ */
+.btn {
+  font: inherit;
+  font-size: 13px;
+  border-radius: var(--radius);
+  padding: 7px 14px;
+  cursor: pointer;
+  white-space: nowrap;
+  border: 1px solid transparent;
+  transition: background var(--ease), border-color var(--ease), color var(--ease);
+}
+
+.btn-primary { background: var(--color-accent); border-color: var(--color-accent); color: #fff; }
+
+.btn-primary:hover { background: var(--color-accent-700); border-color: var(--color-accent-700); }
+
+.btn-secondary { background: var(--color-surface); border-color: var(--color-divider); color: var(--color-text); }
+
+.btn-secondary:hover { border-color: var(--color-accent-400); }
+
+.btn-ghost { background: none; border-color: transparent; color: var(--color-accent-700); padding: 7px 8px; }
+
+.btn-ghost:hover { text-decoration: underline; }
+
+/* danger คือการกระทำที่ย้อนกลับไม่ได้ (ลบคาบ) หน้าหนึ่งควรมีได้ไม่เกินหนึ่งจุด
+   และต้องโผล่หลังการยืนยันเท่านั้น ไม่ใช่วางไว้ให้กดพลาดตั้งแต่แรก */
+.btn-danger { background: var(--color-danger); border-color: var(--color-danger); color: #fff; }
+
+.btn-danger:hover { background: var(--color-danger-700); border-color: var(--color-danger-700); }
+
+.btn-danger-ghost { color: var(--color-danger); }
+
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* ---------- ฟิลด์ ---------- */
+.field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+
+.field > label,
+.field > .field-label { font-size: 12px; color: var(--color-neutral-600); }
+
+/* ป้ายกำกับของกลุ่มปุ่มที่ไม่ใช่ control เดี่ยว ใช้ .field-label แทน label ที่ไม่มี for */
+.field > .field-label { display: block; }
+
+/* ---------- ซ่อนจากตาแต่ไม่ซ่อนจาก screen reader ----------
+   ใช้กับ input file ที่มี label เป็นพื้นที่ลากวาง ถ้า display:none คนใช้คีย์บอร์ดจะโฟกัสไม่ได้เลย */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.input {
+  font: inherit;
+  font-size: 13.5px;
+  transition: border-color var(--ease);
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  min-width: 0;
+}
+
+.input:read-only { background: var(--color-neutral-100); color: var(--color-neutral-900); }
+
+/* ช่องที่แก้ได้ต้องรู้สึกว่ามีชีวิตตอนชี้ ต่างจากช่องอ่านอย่างเดียวที่นิ่งสนิท */
+.input:not(:read-only):not(:disabled):hover { border-color: var(--color-accent-400); }
+
+.input:focus-visible { outline-offset: -1px; border-color: var(--color-accent-700); }
+
+/* ---------- segmented control ---------- */
+.seg { display: inline-flex; border: 1px solid var(--color-divider); border-radius: var(--radius); overflow: hidden; }
+
+.seg-opt { position: relative; }
+
+.seg-opt input { position: absolute; opacity: 0; pointer-events: none; }
+
+.seg-opt span {
+  display: block;
+  transition: background var(--ease), color var(--ease);
+  padding: 7px 13px;
+  font-size: 13px;
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-divider);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.seg-opt:last-child span { border-right: 0; }
+
+/* แบบเรียงลง ใช้ในแถบนำทางซ้ายที่กว้างจำกัด เส้นคั่นย้ายจากขวาไปล่าง */
+.seg--stack { flex-direction: column; }
+
+.seg--stack .seg-opt span { border-right: 0; border-bottom: 1px solid var(--color-divider); }
+
+.seg--stack .seg-opt:last-child span { border-bottom: 0; }
+
+.seg-opt input:checked + span { background: var(--color-accent); color: #fff; }
+
+.seg-opt input:focus-visible + span { outline: 2px solid var(--color-accent-700); outline-offset: -2px; }
+
+/* ---------- พาเนล blueprint ----------
+   ใช้กับพื้นที่ทำงานที่ต้องการให้เด่นกว่าพื้นหลัง มุมทั้งสี่มีเครื่องหมายบวกกำกับขอบเขต */
+.blueprint {
+  position: relative;
+  background: var(--color-surface);
+  border: 1px solid var(--color-divider);
+}
+
+.corner {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  color: var(--color-accent-400);
+}
+
+.corner::before,
+.corner::after { content: ""; position: absolute; background: currentColor; }
+
+.corner::before { left: 0; right: 0; top: 4px; height: 1px; }
+
+.corner::after { top: 0; bottom: 0; left: 4px; width: 1px; }
+
+.corner.tl { top: -5px; left: -5px; }
+
+.corner.tr { top: -5px; right: -5px; }
+
+.corner.bl { bottom: -5px; left: -5px; }
+
+.corner.br { bottom: -5px; right: -5px; }
+
+/* ---------- ป้ายกำกับข้อมูลในแถบ meta ---------- */
+.meta-label {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-neutral-600);
+  white-space: nowrap;
+}
+
+.meta-value { font-size: 14px; font-weight: 600; white-space: nowrap; }

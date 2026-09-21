@@ -12,6 +12,9 @@ public interface TeacherRepository extends JpaRepository<Teacher, Long> {
 
     Optional<Teacher> findByCode(String code);
 
+    /** ลำดับต้องคงที่ ไม่งั้นหน้าเว็บที่เลือกคนแรกอัตโนมัติจะได้คนละคนทุกครั้งที่มีการแก้ข้อมูล */
+    List<Teacher> findAllByOrderByCodeAsc();
+
     // alias ใส่ " " เพื่อกัน Postgres พับชื่อคอลัมน์เป็นตัวเล็ก ไม่งั้น projection จับคู่ไม่ติด
     @Query(value = """
             select session_id   as "sessionId",
@@ -24,7 +27,10 @@ public interface TeacherRepository extends JpaRepository<Teacher, Long> {
                    subject_name as "subjectName",
                    room_code    as "roomCode",
                    group_code   as "groupCode",
-                   headcount    as "headcount"
+                   headcount    as "headcount",
+                   week_from    as "weekFrom",
+                   week_to      as "weekTo",
+                   source_image as "sourceImage"
             from v_teacher_schedule
             where teacher_id = :teacherId
             order by day_of_week, start_time

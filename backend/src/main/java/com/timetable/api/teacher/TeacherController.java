@@ -30,7 +30,7 @@ public class TeacherController {
 
     @GetMapping
     public List<Teacher> list() {
-        return repository.findAll();
+        return repository.findAllByOrderByCodeAsc();
     }
 
     @PostMapping(path = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

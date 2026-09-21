@@ -1,7 +1,11 @@
 spring:
   flyway:
-    # db/seed มีแต่ข้อมูลตัวอย่างของ อ.สจี โปรไฟล์ prod ไม่สแกนโฟลเดอร์นี้
-    locations: classpath:db/migration,classpath:db/seed
+    # ไม่โหลด db/seed แล้ว: ข้อมูลจริงมาจาก dataset/raw/schedules_*.json ผ่าน APP_SCHEDULE_IMPORT_FILE
+    # ครูสาธิตใน seed ชื่อต้นชนกับครูจริง ทำให้แชทถามกลับผิดตัวและตอบว่าไม่มีคาบสอน
+    locations: classpath:db/migration
+    # ฐานที่เคยรัน db/seed ไว้ยังมีประวัติของมันอยู่ ถอดไฟล์ออกแล้ว validate จะฟ้องว่าหาไม่เจอจนบูตไม่ขึ้น
+    # ข้ามเฉพาะ repeatable ที่หายไป ส่วน versioned ยังตรวจตามปกติ
+    ignore-migration-patterns: "repeatable:missing"
 
 app:
   auth:
@@ -10,3 +14,7 @@ app:
       "[dev-staff]": staff
       "[dev-student]": student
       "[dev-teacher]": teacher
+
+  # Vite dev server เรียกข้าม origin มาที่ 8081 ได้เฉพาะตอน dev
+  cors:
+    allowed-origins: http://localhost:5273

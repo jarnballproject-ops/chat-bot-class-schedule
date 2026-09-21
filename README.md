@@ -13,21 +13,38 @@
 | Postgres 16 + Flyway schema (7 ตาราง + view `v_teacher_schedule`) | เสร็จ |
 | นำเข้าทะเบียนครูจาก CSV (`POST /teachers/import`) | เสร็จ |
 | ตอบตารางสอนรายอาจารย์ (`GET /teachers/{id}/schedule`) | เสร็จ |
-| OCR (BE-1..BE-5), หน้าตรวจทาน (BE-6..BE-8), แชท (BE-9, BE-10), frontend | ยังไม่ทำ |
+| หน้าเว็บดูตารางสอน + นำเข้าทะเบียนครู (FE-6 บางส่วน) | เสร็จ |
+| OCR (BE-1..BE-5), หน้าตรวจทาน (BE-6..BE-8), แชท (BE-9, BE-10) | ยังไม่ทำ |
 
 ## รันระบบ
 
 ต้องมี Docker Desktop เปิดอยู่ ไม่ต้องติดตั้ง Java หรือ Maven (ใช้ Maven Wrapper ใน image)
 
 ```bash
-docker compose up -d --build
-docker compose ps          # ต้อง healthy ทั้ง db และ backend
+docker compose up -d --build       # backend + postgres
+docker compose ps                  # ต้อง healthy ทั้งคู่
+
+cd frontend && npm install && npm run dev   # หน้าเว็บที่ http://localhost:5273
 ```
+
+พอร์ตของ Vite ถูกล็อกไว้ที่ 5273 ด้วย `strictPort` เพราะ backend อนุญาต CORS เฉพาะ origin นี้
+ถ้าปล่อยให้ Vite ย้ายพอร์ตเองเมื่อชนกับโปรเจกต์อื่น หน้าเว็บจะเรียก API ไม่ได้แบบเงียบ ๆ
 
 พอร์ตบนเครื่องใช้ **8081** (backend) และ **5433** (postgres) เพราะ 8080/5432 มักถูกโปรเจกต์อื่นจองไว้
 ในเน็ตเวิร์กของ compose ยังคุยกันที่ 8080/5432 ตามเดิม
 
-## ทดลองใช้
+## หน้าเว็บ
+
+![ตารางสอนรายสัปดาห์](docs/screenshots/ux-desktop.png)
+
+ธีมถอดมาจากต้นแบบ `docs/OCR Review - Split.dc (1).html` แล้วใช้เป็นธีมกลางของทุกหน้า
+กติกาและ token ทั้งหมดอยู่ใน [`docs/style-guide.md`](docs/style-guide.md) โค้ดอยู่ที่ `frontend/src/theme.css`
+
+ตารางเป็นกริดวันคูณคาบเหมือนตารางที่พิมพ์จากงานทะเบียน คาบปฏิบัติเป็นการ์ดพื้นฟ้าและรหัสขึ้นต้นด้วย `ป.`
+คาบทฤษฎีเป็นการ์ดพื้นขาวขึ้นต้นด้วย `ท.` — สื่อสองทางเสมอเพื่อให้คนตาบอดสียังอ่านได้
+คลิกการ์ดแล้วรายละเอียดคาบขึ้นในพาเนลด้านล่าง ปุ่มสลับบทบาทมุมขวาบนใช้ token ของโปรไฟล์ dev
+
+## ทดลองใช้ผ่าน API
 
 token ของโปรไฟล์ dev มี 3 ตัว: `dev-staff` · `dev-teacher` · `dev-student`
 เป็นของปลอมสำหรับสาธิตเท่านั้น โปรไฟล์ prod ไม่มี token ใด ๆ จนกว่าจะต่อ SSO จริง (ทุก request จะโดน 401)

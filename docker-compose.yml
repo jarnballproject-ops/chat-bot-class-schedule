@@ -9,6 +9,9 @@ services:
       POSTGRES_USER: timetable
       POSTGRES_PASSWORD: timetable
     ports:
+      # 5432 ไว้ให้ backend ที่รันจาก IDE ต่อได้ด้วยค่า default
+      # 5433 คงไว้เผื่อ 5432 ถูกโปรเจกต์อื่นจอง (ดู README)
+      - "5432:5432"
       - "5433:5432"        # host ใช้ 5433 เพราะ 5432 ถูกโปรเจกต์อื่นจองอยู่ ในเน็ตเวิร์ก compose ยังเป็น 5432
     volumes:
       - pgdata:/var/lib/postgresql/data
@@ -30,10 +33,21 @@ services:
       SPRING_DATASOURCE_USERNAME: timetable
       SPRING_DATASOURCE_PASSWORD: timetable
       JAVA_TOOL_OPTIONS: -Xmx512m
+      # แชทจะเรียกโมเดลก็ต่อเมื่อ APP_LLM_ENABLED=true และ chat-llm ขึ้นแล้ว ไม่งั้นตอบจาก SQL เหมือนเดิม
+      APP_LLM_ENABLED: ${APP_LLM_ENABLED:-false}
+      APP_LLM_BASE_URL: ${APP_LLM_BASE_URL:-http://chat-llm:8102/v1}
+      APP_LLM_MODEL: ${APP_LLM_MODEL:-qwen2.5-1.5b-instruct}
+      APP_LLM_API_KEY: ${APP_LLM_API_KEY:-}
+      APP_LLM_LORA_SCALE: ${APP_LLM_LORA_SCALE:-0}
+      # นำเข้าตารางจาก JSON ตอนสตาร์ท เพิ่มแผนกใหม่ = แก้ไฟล์แล้ว docker compose restart backend
+      APP_SCHEDULE_IMPORT_FILE: ${APP_SCHEDULE_IMPORT_FILE:-/data/schedules/schedules_all.json}
+      # โฟลเดอร์เดียวกับ JSON เพราะ sourceFile ในไฟล์เป็น path สัมพัทธ์ เช่น "ตารางสอนIT/Screenshot ....png"
+      APP_SCHEDULE_IMAGES_DIR: ${APP_SCHEDULE_IMAGES_DIR:-/data/schedules}
     ports:
       - "8081:8080"        # host ใช้ 8081 เพราะ 8080 ถูกโปรเจกต์อื่นจองอยู่
     volumes:
       - uploads:/data/uploads
+      - ./dataset/raw:/data/schedules:ro
     mem_limit: 1g
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health || exit 1"]
@@ -42,12 +56,37 @@ services:
       retries: 10
       start_period: 60s
 
-  # ยังไม่เปิดใน slice นี้ — เพิ่มตอนทำสาย OCR และสายแชท
-  # ocr-worker: Typhoon OCR 2B int8 (FastAPI) ~3 GB · รันทีละงาน
-  #   mem_limit: 3g
-  # ollama: Qwen2.5-1.5B + LoRA merged เป็น GGUF q4 ~2.5 GB
-  #   mem_limit: 3g
-  # ห้ามรัน 2 ตัวนี้พร้อมกันบนเครื่อง 8 GB (NFR-03)
+  # หน้าเว็บ + reverse proxy ไป backend เปิด http://localhost:5273 แล้วใช้งานได้เลย
+  # ไม่ต้องรัน npm บนเครื่องปลายทาง ย้ายเครื่อง = git clone แล้ว docker compose up -d
+  frontend:
+    build: ./frontend
+    depends_on:
+      - backend
+    ports:
+      - "5273:80"
+    mem_limit: 256m
+
+  # OCR local (llama-server + ocr-worker) ถูกตัดออกแล้ว: 2B Q4 บน CPU อ่านกริดตารางไม่ออก
+  # (รหัสวิชาตกหลัก ชื่อวิชาหาย แถววันวนซ้ำ) และกิน 19 นาที/หน้า ผิด NFR-02 ไป 7 เท่า
+  # ตอนนี้ข้อมูลตารางมาจาก dataset/raw/schedules_*.json แล้ว import เข้า Postgres แทน
+
+  # โมเดลตอบคำถามของหน้าแชท (ข้อ 6.4) — เปิดเฉพาะเมื่อสั่ง profile chat:
+  #   docker compose --profile chat up -d chat-llm
+  # ห้ามรันพร้อมกับ llama-server ของสาย OCR บนเครื่อง 8 GB (NFR-03)
+  # ไฟล์ .gguf ไม่ commit เข้า git โหลดก่อนด้วย chat-llm/models/download.sh
+  chat-llm:
+    image: ghcr.io/ggml-org/llama.cpp:server
+    profiles: ["chat"]
+    volumes:
+      - ./chat-llm/models:/models:ro
+    # เพิ่ม --lora /models/schedule-lora.gguf เมื่อเทรน adapter เสร็จ แล้วตั้ง APP_LLM_LORA_SCALE=1
+    command: >
+      -m /models/${CHAT_MODEL_FILE:-Qwen2.5-1.5B-Instruct-Q4_K_M.gguf}
+      --alias qwen2.5-1.5b-instruct
+      --port 8102 --host 0.0.0.0 -c 4096 --no-warmup
+    ports:
+      - "8102:8102"
+    mem_limit: 2g
 
 volumes:
   pgdata:

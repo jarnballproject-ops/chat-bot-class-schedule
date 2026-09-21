@@ -1,0 +1,684 @@
+/* สไตล์เฉพาะหน้าตารางสอน token และคอมโพเนนต์กลางอยู่ใน theme.css */
+@import "./theme.css";
+
+/* ============================================================
+   โครงหน้าแอป
+   rail (นำทางถาวร) | shell__body (แถบหัว + พื้นที่ทำงาน)
+   พื้นที่ทำงานเป็นสามคอลัมน์: ทะเบียนครู | งานหลัก | รายละเอียดที่เลือกอยู่
+   ============================================================ */
+
+/* สูงเท่าจอพอดีและให้แต่ละคอลัมน์เลื่อนของตัวเอง แถบหัวกับแถบนำทางจึงไม่เลื่อนหนีไป
+   (บนจอแคบกลับไปเลื่อนทั้งหน้าตามปกติ ดูท้ายไฟล์) */
+.shell { display: flex; height: 100vh; overflow: hidden; }
+
+.shell__body { display: flex; flex-direction: column; flex: 1; min-width: 0; min-height: 0; }
+
+/* ---------- แถบนำทางซ้าย ----------
+   ใช้ข้อความล้วนไม่ใช้ไอคอน เพราะคำไทยสั้นกว่าและไม่ต้องเดาความหมายของรูป */
+.rail {
+  width: 132px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2px;
+  padding: 10px 8px;
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-divider);
+}
+
+/* พับแล้วเหลือแค่ตัวอักษรแรกของแต่ละเมนู ตารางได้พื้นที่คืนเกือบร้อย px */
+.rail--narrow { width: 52px; padding: 10px 6px; }
+
+.rail--narrow .rail__item { text-align: center; padding: 9px 4px; }
+
+.rail__fold {
+  font: inherit;
+  margin-top: 10px;
+  width: 100%;
+  background: none;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius);
+  padding: 4px 0;
+  cursor: pointer;
+  color: var(--color-neutral-700);
+}
+
+.rail__fold:hover { background: var(--color-accent-100); color: var(--color-accent-900); }
+
+.rail__brand {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-accent-800);
+  text-align: center;
+  padding: 4px 0 12px;
+}
+
+.rail__item {
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  background: none;
+  border: 0;
+  border-left: 3px solid transparent;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 9px 8px;
+  cursor: pointer;
+  color: var(--color-neutral-700);
+}
+
+.rail__item { transition: background var(--ease), color var(--ease), border-color var(--ease); }
+
+.rail__item:hover { background: var(--color-accent-100); color: var(--color-text); }
+
+.rail__item[aria-current="page"] {
+  border-left-color: var(--color-accent);
+  background: var(--color-accent-100);
+  color: var(--color-accent-900);
+  font-weight: 600;
+}
+
+.rail__foot { margin-top: auto; padding-top: 12px; border-top: 1px solid var(--color-divider); }
+
+.rail__label {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-neutral-600);
+  margin-bottom: 6px;
+}
+
+/* ---------- แถบหัว ---------- */
+
+.topbar {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  padding: 10px 18px;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-divider);
+  flex: none;
+  flex-wrap: wrap;
+  row-gap: 8px;
+}
+
+.topbar__title { font-size: 17px; font-weight: 600; }
+
+.topbar__right { margin-left: auto; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+.topbar__count { font-size: 12px; color: var(--color-neutral-700); }
+
+.topbar__count strong { color: var(--color-accent-800); font-size: 15px; }
+
+/* ---------- พื้นที่ทำงานสามคอลัมน์ ---------- */
+
+.workspace { display: flex; flex: 1; min-width: 0; min-height: 0; align-items: stretch; }
+
+.pane { display: flex; flex-direction: column; min-width: 0; min-height: 0; background: var(--color-surface); }
+
+/* ความกว้างจริงมาจาก inline style ตอนลาก ค่าตรงนี้เป็นค่าเริ่มต้นก่อน React ใส่ค่าให้ */
+.pane--registry { width: 264px; flex: none; border-right: 1px solid var(--color-divider); }
+
+/* เส้นลากปรับขนาด กว้าง 5px เพราะ 1px จับยากด้วยเมาส์ แต่แสดงผลเป็นเส้นบางเท่าเดิม */
+.splitter {
+  flex: none;
+  width: 5px;
+  margin: 0 -2px;
+  cursor: col-resize;
+  background: transparent;
+  z-index: 1;
+}
+
+.splitter { transition: background var(--ease); }
+
+.splitter:hover, .splitter:focus-visible { background: var(--color-accent-400); outline: none; }
+
+/* ลากอยู่ห้ามให้เคอร์เซอร์เปลี่ยนเป็นตัวชี้ข้อความ และห้ามเลือกข้อความไปด้วย */
+body.dragging { cursor: col-resize; user-select: none; }
+
+/* แผงที่พับแล้วเหลือแถบแนวตั้งคลิกเปิดกลับ ไม่ใช่หายไปเฉย ๆ จนหาไม่เจอ */
+.pane__tab {
+  font: inherit;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  flex: none;
+  width: 28px;
+  border: 0;
+  border-right: 1px solid var(--color-divider);
+  background: var(--color-surface);
+  color: var(--color-neutral-700);
+  cursor: pointer;
+  writing-mode: vertical-rl;
+  padding: 12px 0;
+}
+
+.pane__tab { transition: background var(--ease), color var(--ease); }
+
+.pane__tab:hover { background: var(--color-accent-100); color: var(--color-accent-900); }
+
+.pane__fold {
+  font: inherit;
+  margin-left: 6px;
+  background: none;
+  border: 0;
+  padding: 0 4px;
+  cursor: pointer;
+  color: var(--color-neutral-600);
+}
+
+.pane__fold:hover { color: var(--color-accent-900); }
+
+.pane--work { flex: 1; min-width: 0; background: var(--color-bg); overflow-y: auto; }
+
+/* แผงรายละเอียดอยู่ติดขวาและติดหน้าจอไว้ ทำให้แก้คาบได้โดยไม่ต้องเลื่อนหนีตาราง */
+.pane--inspector {
+  width: 368px;
+  flex: none;
+  border-left: 1px solid var(--color-divider);
+  overflow-y: auto;
+}
+
+.pane__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  font-size: 11px;
+  color: var(--color-neutral-700);
+  border-bottom: 1px solid var(--color-divider);
+  flex: none;
+}
+
+.pane__head span:first-child { letter-spacing: 0.1em; text-transform: uppercase; }
+
+.pane__head span:last-child { margin-left: auto; }
+
+/* ปุ่มพับอยู่ท้ายสุด ตัวนับจึงต้องดันตัวเองไปชิดขวาแทนที่จะเป็น span ตัวสุดท้าย */
+.pane__head span:nth-child(2) { margin-left: auto; }
+
+/* ตารางกว้างกว่าจอเสมอ ให้เลื่อนเฉพาะกล่องนี้ ไม่ใช่ทั้งหน้า */
+.scroller { overflow-x: auto; padding: 14px 18px 18px; flex: 1; }
+
+/* ---------- แถบข้อมูลอาจารย์ ---------- */
+
+.metastrip {
+  display: flex;
+  padding: 8px 18px;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-divider);
+  flex: none;
+  flex-wrap: wrap;
+  row-gap: 8px;
+}
+
+.metastrip__item {
+  display: flex;
+  flex-direction: column;
+  padding-right: 18px;
+  margin-right: 18px;
+  border-right: 1px solid var(--color-divider);
+}
+
+/* ชิ้นสุดท้ายไม่ต้องมีเส้น ไม่งั้นเหลือเส้นห้อยกลางแถบโดยไม่ได้คั่นอะไร */
+.metastrip__item:last-of-type { border-right: 0; padding-right: 0; margin-right: 18px; }
+
+.metastrip__hint {
+  display: flex;
+  align-items: center;
+  font-size: 11px;
+  color: var(--color-accent-700);
+  min-width: 0;
+}
+
+/* ---------- รายชื่อครู ---------- */
+
+.people { overflow-y: auto; flex: 1; }
+
+.person {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  background: none;
+  border: 0;
+  border-left: 3px solid transparent;
+  border-bottom: 1px solid var(--color-neutral-100);
+  padding: 8px 14px 8px 11px;
+  cursor: pointer;
+}
+
+.person { transition: background var(--ease), border-color var(--ease); }
+
+.person:hover { background: var(--color-accent-100); }
+
+.person[aria-current="true"] { border-left-color: var(--color-accent); background: var(--color-accent-100); }
+
+.person__name { display: block; font-size: 13.5px; font-weight: 500; }
+
+.person__meta { display: block; font-size: 11.5px; color: var(--color-neutral-600); }
+
+/* ---------- ตาราง ---------- */
+
+.grid { min-width: 940px; }
+
+.grid__ruler { display: flex; font-size: 9px; color: var(--color-neutral-700); margin-bottom: 3px; }
+
+.grid__gutter { position: sticky; left: 0; z-index: 2; background: var(--color-bg); width: 64px; flex: none; }
+
+.grid__tick {
+  flex: 1 1 0;
+  min-width: 0;
+  text-align: center;
+  border-left: 1px solid var(--color-divider);
+  padding: 1px 0;
+  line-height: 1.25;
+}
+
+/* เลขคาบเป็นข้อมูลที่ต้องอ่านออก ไม่ใช่ของตกแต่ง จึงใช้เทาเข้มที่ผ่านเกณฑ์ความต่างสี */
+.grid__tick span { display: block; color: var(--color-neutral-700); }
+
+.grid__row { display: flex; margin-bottom: 4px; align-items: stretch; }
+
+/* ตารางกว้างกว่าจอ ชื่อวันต้องค้างอยู่ตอนเลื่อนขวา ไม่งั้นเลื่อนไปคาบบ่ายแล้วไม่รู้ว่าวันอะไร */
+.grid__day {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background: var(--color-bg);
+  width: 64px;
+  flex: none;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  padding-right: 6px;
+}
+
+.grid__slots { display: flex; flex: 1; min-width: 0; gap: 0; }
+
+.slot { flex: 1 1 0; min-width: 0; border-left: 1px solid var(--color-divider); padding: 0 2px; }
+
+/* ---------- การ์ดคาบเรียน ----------
+   ปฏิบัติเป็นการ์ดพื้นเฉดฟ้า ทฤษฎีเป็นการ์ดพื้นขาว แยกออกจากกันได้ตั้งแต่ยังไม่อ่านตัวอักษร
+   ส่วนคำนำหน้ารหัส ท./ป. ยืนยันซ้ำให้คนที่แยกสีไม่ออก */
+.card {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  border: 1px solid var(--color-accent-400);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  padding: 5px 7px 6px;
+  height: 74px;
+  overflow: hidden;
+}
+
+.card--practice { background: var(--color-accent-200); }
+
+.card[aria-pressed="true"] { border-color: var(--color-accent-800); box-shadow: inset 0 0 0 1px var(--color-accent-800); }
+
+.card { transition: border-color var(--ease), box-shadow var(--ease); }
+
+/* ชี้แล้วขอบเข้มขึ้นพร้อมวงในอีกชั้น ให้รู้ว่าการ์ดกดได้โดยไม่ต้องใช้เงา (กติกาข้อ "เส้นบางแทนเงา") */
+.card:hover { border-color: var(--color-accent-700); box-shadow: inset 0 0 0 1px var(--color-accent-300); }
+
+.card[aria-pressed="true"]:hover { box-shadow: inset 0 0 0 1px var(--color-accent-800); }
+
+.card__code { font-size: 12px; font-weight: 600; color: var(--color-accent-900); }
+
+.card__name {
+  font-size: 11.5px;
+  line-height: 1.3;
+  margin-top: 1px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.card[data-span="1"] .card__code { font-size: 11px; }
+
+.card[data-span="1"] .card__name { font-size: 11px; -webkit-line-clamp: 2; }
+
+.card[data-span="1"] .card__meta:last-child { display: none; }
+
+.card__meta { font-size: 11px; color: var(--color-neutral-700); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ---------- ลากวางคาบ ----------
+   ช่องว่างที่รับการ์ดได้จะขึ้นกรอบประ ช่องที่คาบยาวเกินท้ายวันจะไม่ติดคลาสนี้เลย */
+.card[draggable="true"] { cursor: grab; }
+
+.card[draggable="true"]:active { cursor: grabbing; }
+
+.slot--over { background: var(--color-accent-100); outline: 1px dashed var(--color-accent-400); outline-offset: -1px; }
+
+/* ---------- คำอธิบายสัญลักษณ์ ---------- */
+
+.legend { display: flex; gap: 14px; margin-top: 14px; font-size: 11px; color: var(--color-neutral-700); flex-wrap: wrap; }
+
+.legend__item { display: flex; align-items: center; gap: 6px; }
+
+.legend__chip { width: 14px; height: 14px; display: block; border: 1px solid var(--color-accent-400); border-radius: var(--radius); }
+
+.legend__chip--practice { background: var(--color-accent-200); }
+
+.legend__chip--selected { border-color: var(--color-accent-800); box-shadow: inset 0 0 0 1px var(--color-accent-800); }
+
+/* ต้นฉบับซ้าย ของที่สกัดได้ขวา เทียบกันได้ในจอเดียว */
+.compare { display: grid; grid-template-columns: minmax(280px, 1fr) minmax(520px, 1.4fr); gap: 18px; align-items: start; }
+
+.compare__out { min-width: 0; }
+
+.compare__head { font-size: 12px; color: var(--color-neutral-700); margin-bottom: 10px; }
+
+.compare .sources { margin-top: 0; border-top: 0; padding-top: 0; }
+
+.compare .source__img { max-width: 100%; }
+
+/* วิชาตามช่วงสัปดาห์ ครูคนเดียวเปลี่ยนวิชาตามหลักสูตร */
+.weeks { margin-top: 22px; border-top: 1px solid var(--color-divider); padding-top: 14px; }
+
+.weeks__head { font-size: 12px; color: var(--color-neutral-700); margin-bottom: 10px; }
+
+.weeks__table { width: 100%; border-collapse: collapse; font-size: 12px; }
+
+.weeks__table th, .weeks__table td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--color-divider); vertical-align: top; }
+
+.weeks__table thead th { font-weight: 600; color: var(--color-neutral-700); }
+
+.weeks__table tr[aria-current="true"] { background: var(--color-accent-200); }
+
+.weeks__table tbody th { white-space: nowrap; font-weight: 600; }
+
+.weeks__table tbody th .btn { padding: 0; font: inherit; }
+
+.weeks__course { display: inline-block; margin: 0 10px 2px 0; }
+
+/* รูปตารางต้นฉบับใต้ตาราง ไว้เทียบว่าระบบอ่านคาบมาถูกไหม */
+.sources { margin-top: 22px; border-top: 1px solid var(--color-divider); padding-top: 14px; }
+
+.sources__head { font-size: 12px; color: var(--color-neutral-700); margin-bottom: 10px; }
+
+.source { margin: 0 0 18px; }
+
+.source__img {
+  display: block;
+  width: 100%;
+  max-width: 1100px;
+  height: auto;
+  border: 1px solid var(--color-divider);
+  border-radius: 4px;
+  background: var(--color-surface);
+}
+
+.source__cap { margin-top: 6px; font-size: 11px; color: var(--color-neutral-600); }
+
+/* ---------- แผงรายละเอียดคาบ ---------- */
+
+.detail { padding: 14px; }
+
+.detail__head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+
+.detail__title { font-size: 15px; font-weight: 600; }
+
+.detail__note { margin-left: auto; font-size: 11px; color: var(--color-neutral-700); }
+
+/* ในแผงแคบทุกฟิลด์เรียงลงมาทีละอัน ยกเว้นคู่ที่อ่านคู่กันแล้วเข้าใจเร็วกว่า */
+.detail__row { display: grid; grid-template-columns: 1fr; gap: 10px; }
+
+.detail__row--pair { grid-template-columns: 1fr 1fr; align-items: end; }
+
+.detail__row + .detail__row { margin-top: 10px; }
+
+.detail__empty { font-size: 13px; color: var(--color-neutral-700); padding: 8px 0; }
+
+.detail__foot {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-divider);
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* seg ในฟอร์มกว้างเท่าเนื้อหา ไม่ยืดเต็มช่อง grid */
+.field > .seg { align-self: start; }
+
+.stepper { display: flex; align-items: center; gap: 8px; }
+
+.stepper .btn { padding: 5px 10px; line-height: 1; }
+
+.stepper strong { font-size: 13.5px; min-width: 52px; text-align: center; }
+
+/* ---------- สถานะ ---------- */
+
+.state { padding: 28px 18px; max-width: 48ch; }
+
+.state__title { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+
+.state__body { color: var(--color-neutral-700); margin: 0; }
+
+.state--error { background: var(--color-surface); border-bottom: 1px solid var(--color-divider); max-width: none; padding: 14px 18px; }
+
+.state--error .state__title { color: var(--color-danger); }
+
+.notice { font-size: 12px; margin: 0; }
+
+.notice--ok { color: var(--color-accent-800); }
+
+.notice--bad { color: var(--color-danger); }
+
+/* ---------- หน้าอัปโหลดและหน้าแชท ----------
+   สองหน้านี้อยู่ในคอลัมน์งานหลัก จึงจำกัดความกว้างบรรทัดไม่ให้ยืดเต็มจอกว้าง */
+.page { display: flex; flex-direction: column; gap: 18px; padding: 18px; max-width: 1100px; }
+
+.upload, .chat { padding: 14px; }
+
+.detail__row--upload { grid-template-columns: 1.4fr 1fr 1fr; align-items: end; }
+
+.owner {
+  display: flex;
+  flex-direction: column;
+  padding: 7px 10px;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius);
+  background: var(--color-neutral-100);
+  min-height: 38px;
+}
+
+.owner strong { font-size: 13.5px; }
+
+.owner span { font-size: 11px; color: var(--color-neutral-700); }
+
+.check { display: flex; align-items: center; gap: 7px; font-size: 13px; padding: 9px 0; }
+
+.dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 12px;
+  padding: 26px 14px;
+  border: 1px dashed var(--color-divider);
+  border-radius: var(--radius);
+  background: var(--color-neutral-100);
+  cursor: pointer;
+  text-align: center;
+}
+
+.dropzone:hover { border-color: var(--color-accent-400); }
+
+/* input file ถูกซ่อนด้วย .sr-only ยังโฟกัสได้ ต้องให้กรอบของ dropzone แสดงโฟกัสแทน */
+.dropzone:focus-within { border-color: var(--color-accent); outline: 2px solid var(--color-accent-700); outline-offset: 1px; }
+
+.dropzone--over { border-color: var(--color-accent); background: var(--color-accent-100); }
+
+.dropzone span { font-size: 12px; color: var(--color-neutral-700); }
+
+.docrow {
+  display: flex;
+  gap: 14px;
+  align-items: baseline;
+  padding: 8px 4px;
+  border-bottom: 1px solid var(--color-neutral-100);
+  flex-wrap: wrap;
+}
+
+.docrow__name { font-size: 13.5px; font-weight: 500; flex: 1 1 220px; min-width: 0; overflow-wrap: anywhere; }
+
+.docrow__meta { font-size: 11.5px; color: var(--color-neutral-700); }
+
+.docrow__status {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-accent-800);
+  background: var(--color-accent-100);
+  border: 1px solid var(--color-accent-300);
+  border-radius: var(--radius);
+  padding: 1px 6px;
+}
+
+/* ---------- แชท ---------- */
+
+.chat__log { display: flex; flex-direction: column; gap: 10px; min-height: 240px; max-height: 58vh; overflow-y: auto; padding: 4px; }
+
+.bubble {
+  max-width: 78%;
+  padding: 8px 11px;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius);
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+
+.bubble--user { align-self: flex-end; background: var(--color-accent); border-color: var(--color-accent); color: #fff; }
+
+.bubble--bot { align-self: flex-start; background: var(--color-surface); }
+
+.bubble__foot { margin-top: 6px; font-size: 11px; color: var(--color-neutral-600); }
+
+.bubble__options { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+
+.chat__composer { display: flex; gap: 8px; margin-top: 12px; }
+
+.chat__examples { display: flex; gap: 6px; margin: 8px 0; flex-wrap: wrap; }
+
+/* ---------- จอแคบ ----------
+   1240px: แผงรายละเอียดลงไปอยู่ใต้ตารางเต็มความกว้าง
+   900px: แถบนำทางกลายเป็นแถวบนสุด ทะเบียนครูกลายเป็นแถบเตี้ยที่เลื่อนได้ */
+@media (max-width: 1240px) {
+  .shell { height: auto; overflow: visible; }
+  .workspace { flex-wrap: wrap; }
+  .pane--work, .pane--inspector { overflow: visible; }
+  .pane--work { flex: 1 1 100%; }
+  .pane--inspector { width: 100% !important; border-left: 0; border-top: 1px solid var(--color-divider); }
+  /* แผงเรียงลงล่างแล้ว เส้นลากแนวตั้งไม่มีความหมาย ซ่อนไปเลย */
+  .splitter { display: none; }
+  .detail__row { grid-template-columns: 1fr 1fr; }
+  .compare { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 900px) {
+  .shell { flex-direction: column; }
+  .rail { width: auto; flex-direction: row; align-items: center; gap: 4px; border-right: 0; border-bottom: 1px solid var(--color-divider); padding: 6px 10px; }
+  .rail__brand { padding: 0 8px 0 0; }
+  .rail__item { border-left: 0; border-bottom: 3px solid transparent; border-radius: var(--radius) var(--radius) 0 0; }
+  .rail__item[aria-current="page"] { border-left-color: transparent; border-bottom-color: var(--color-accent); }
+  .rail__foot { margin: 0 0 0 auto; padding: 0; border-top: 0; display: flex; align-items: center; gap: 8px; }
+  .rail__label { margin: 0; }
+  .seg--stack { flex-direction: row; }
+  /* จอแคบวางแผงซ้อนกันเป็นแถว ความกว้างที่ลากไว้ตอนจอกว้างต้องไม่มามีผลตรงนี้ */
+  .pane--registry { width: 100% !important; flex: 1 1 100%; border-right: 0; border-bottom: 1px solid var(--color-divider); }
+  .people { max-height: 180px; }
+  .metastrip__item:nth-child(n + 4) { margin-top: 4px; }
+  .detail__row, .detail__row--pair, .detail__row--upload { grid-template-columns: 1fr; }
+  .bubble { max-width: 92%; }
+}
+
+/* ---------- ค้นหาในทะเบียนครู ---------- */
+
+.search { padding: 8px 10px; border-bottom: 1px solid var(--color-divider); }
+
+.search .input { width: 100%; font-size: 12.5px; }
+
+.search__count { font-size: 11px; color: var(--color-neutral-700); margin: 0; padding: 6px 12px 0; }
+
+/* ---------- แถบเปอร์เซ็นต์ในหน้ารายงาน ---------- */
+
+.bar {
+  flex: 1 1 120px;
+  height: 6px;
+  min-width: 80px;
+  background: var(--color-neutral-200);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.bar__fill { display: block; height: 100%; background: var(--color-accent); }
+
+/* ---------- พิมพ์ ----------
+   กระดาษไม่มีแถบนำทาง ไม่มีแผงแก้ไข เหลือแค่หัวเรื่องกับตารางเต็มหน้า
+   แนวนอนเพราะตารางกว้าง 5 วัน คูณ 11 คาบ ย่อลงแนวตั้งแล้วอ่านไม่ออก */
+@page { size: A4 landscape; margin: 10mm; }
+
+@media print {
+  .rail, .pane--registry, .pane--inspector, .topbar__right, .legend, .metastrip__hint, .state--error, .sources, .weeks,
+  .splitter, .pane__tab {
+    display: none !important;
+  }
+
+  .shell, .shell__body, .workspace, .pane--work, .scroller {
+    display: block;
+    height: auto;
+    overflow: visible;
+  }
+
+  .topbar { position: static; border: 0; padding: 0 0 6px; }
+
+  .grid { min-width: 0; }
+
+  .compare { display: block; }
+
+  /* พื้นการ์ดคือตัวแยกคาบปฏิบัติกับทฤษฎี เบราว์เซอร์ตัดสีพื้นตอนพิมพ์โดยปริยาย ต้องสั่งให้เก็บไว้ */
+  .card, .card--practice { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+
+  .grid__row { break-inside: avoid; }
+}
+
+/* ---------- ยืนยันก่อนลบ ----------
+   ปุ่มลบถาวรโผล่เฉพาะหลังกด "ลบคาบนี้" แล้ว ที่ว่างเดิมของปุ่มจึงกลายเป็นคำถามยืนยันแทน */
+.confirm { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+.confirm__text { font-size: 12.5px; color: var(--color-danger); }
+
+/* select ที่อยู่ในแถบข้อมูลด้านบน ต้องเตี้ยกว่าฟอร์มปกติเพื่อไม่ให้แถบสูงขึ้นทั้งแถว */
+.input--inline { padding: 3px 6px; font-size: 13px; max-width: 200px; }
+
+/* ข้อสังเกตของตัวสกัดใต้รูปต้นฉบับ ขึ้นบรรทัดใหม่เพราะยาวกว่าคำบรรยายปกติ */
+.source__note { display: block; margin-top: 3px; color: var(--color-danger); }
+
+/* ---------- กริดหนึ่งใบต่อหนึ่งตารางต้นฉบับ ----------
+   หลายใบเรียงลงมา เส้นคั่นบอกว่าจบใบหนึ่งแล้ว ไม่ใช่ตารางเดียวที่ยาวผิดปกติ */
+.sheet + .sheet { margin-top: 18px; border-top: 1px solid var(--color-divider); padding-top: 14px; }
+
+.sheet__head {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: var(--color-accent-800);
+}
+
+.sheet__count { margin-left: auto; color: var(--color-neutral-700); }
+
+@media print {
+  /* ใบละหน้ากระดาษ เหมือนตารางที่งานทะเบียนพิมพ์ทีละใบ */
+  .sheet + .sheet { break-before: page; border-top: 0; }
+}

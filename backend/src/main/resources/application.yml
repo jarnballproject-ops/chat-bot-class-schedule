@@ -30,3 +30,38 @@ app:
     # fail closed โดยเจตนา: ไม่มี token = ทุก request โดน 401
     # โปรไฟล์ prod ต้องต่อ OIDC จริงก่อนถึงจะใช้งานได้
     tokens: {}
+
+  # โฟลเดอร์เก็บไฟล์ตารางต้นฉบับ compose map เป็น volume uploads ไว้แล้ว
+  uploads:
+    dir: ${APP_UPLOADS_DIR:/data/uploads}
+
+  # รูปตารางต้นฉบับที่ใช้สกัดข้อมูล path ใน session.source_image สัมพัทธ์กับโฟลเดอร์นี้
+  # ค่าเริ่มต้นชี้ dataset/raw เพื่อให้รันจาก IDE ที่รากโปรเจกต์ได้เลย compose ชี้ไป volume แทน
+  schedule-images:
+    dir: ${APP_SCHEDULE_IMAGES_DIR:dataset/raw}
+
+  # ไฟล์ตารางที่สกัดเป็น JSON แล้ว นำเข้าตอนสตาร์ท (รันซ้ำได้ ไม่เกิดแถวซ้ำ)
+  # ว่าง = ไม่นำเข้า ใช้ข้อมูลที่อยู่ในฐานเดิม
+  schedule-import:
+    file: ${APP_SCHEDULE_IMPORT_FILE:}
+
+  # โมเดลภาษาสำหรับหน้าแชท (OpenAI-compatible) ใช้ได้ทั้ง API นอกและ sidecar ในเครื่อง
+  # ปิดไว้เป็นค่าเริ่มต้น: ไม่มีโมเดล = ระบบยังตอบได้จาก SQL เหมือนเดิม (ADR-10 fallback)
+  # ต่อ API นอก เช่น opentyphoon.ai:
+  #   APP_LLM_ENABLED=true
+  #   APP_LLM_BASE_URL=https://api.opentyphoon.ai/v1
+  #   APP_LLM_MODEL=typhoon-v2.1-12b-instruct
+  #   APP_LLM_API_KEY=sk-...        (ใส่ใน .env เท่านั้น ห้าม commit)
+  llm:
+    enabled: ${APP_LLM_ENABLED:false}
+    base-url: ${APP_LLM_BASE_URL:http://localhost:8102/v1}
+    api-key: ${APP_LLM_API_KEY:}
+    model: ${APP_LLM_MODEL:qwen2.5-1.5b-instruct}
+    temperature: ${APP_LLM_TEMPERATURE:0}
+    max-tokens: ${APP_LLM_MAX_TOKENS:320}
+    connect-timeout-ms: ${APP_LLM_CONNECT_TIMEOUT_MS:2000}
+    read-timeout-ms: ${APP_LLM_READ_TIMEOUT_MS:30000}
+    # LoRA: llama-server โหลด adapter ด้วย --lora ตอนสตาร์ท แล้วสั่งเปิดรายคำขอด้วยสเกลนี้
+    # 0 = ใช้โมเดลฐานล้วน (ค่าเริ่มต้นตอนยังไม่ได้เทรน adapter)
+    lora-id: ${APP_LLM_LORA_ID:0}
+    lora-scale: ${APP_LLM_LORA_SCALE:0}

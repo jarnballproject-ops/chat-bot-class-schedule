@@ -3,3 +3,17 @@ node_modules/
 *.zip
 .env
 .idea/
+.playwright-mcp/
+dist/
+dataset/ocr-out/
+
+# น้ำหนักโมเดล: ใหญ่เกินลิมิต GitHub (100 MB/ไฟล์) และโหลดใหม่ได้เสมอ
+# base_model + lora adapter รวมกันเกือบ 1 GB โหลดจาก Kaggle/HuggingFace แทนการ commit
+backend/Model kaggle/
+chat-llm/models/*.gguf
+*.safetensors
+*.gguf
+
+# JVM crash dump ที่โผล่มาตอน backend ล่ม ไม่ใช่ซอร์ส
+hs_err_pid*.log
+replay_pid*.log
